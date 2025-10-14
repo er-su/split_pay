@@ -16,7 +16,7 @@ def make_engine(url: str, **kwargs):
 
     # IMPORTANT for SQLite: enable foreign keys on each connection
     # SQLite requires PRAGMA foreign_keys = ON per connection to actually enforce constraints.
-    # See sqlite.org and SQLAlchemy docs. :contentReference[oaicite:2]{index=2}
+
     if url.startswith("sqlite"):
         @event.listens_for(engine, "connect")
         def _set_sqlite_pragma(dbapi_connection, connection_record):
@@ -104,7 +104,7 @@ def get_group_member_net_balances(db: Session, group_id: int, user_id: int,
     # 1) Load transactions + splits + payer info for the group.
     #    We'll fetch transactions and their splits and then compute net per other user in Python,
     #    because conversion uses potentially external rates and rounding rules.
-    #
+
     txs = db.execute(
         select(
             Transaction.id,
@@ -143,7 +143,7 @@ def get_group_member_net_balances(db: Session, group_id: int, user_id: int,
         tx_rate = t.exchange_rate_to_group
         # If stored rate missing, call get_rate_for_tx(tx) to fetch a rate (caller-provided).
         if tx_rate is None:
-            tx_rate = get_rate_for_tx(t)  # e.g., returns float multiplier
+            tx_rate = get_rate_for_tx(t)
         # conversion function: tx cents -> group cents
         def convert(cents: int) -> int:
             # careful rounding: round half up

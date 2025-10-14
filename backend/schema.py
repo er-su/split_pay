@@ -14,6 +14,9 @@ class Base(DeclarativeBase):
 
 # --- User and OAuth link ---
 class User(Base):
+    """
+    Store essential information about users. Contains relationships with OAuth accounts, memberships, and transactions
+    """
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -32,7 +35,7 @@ class User(Base):
 
 class OAuthAccount(Base):
     """
-    store minimal OAuth provider link (e.g. Google). Keeps it simple:
+    store minimal OAuth provider link (e.g. Google).
     provider_name (e.g. 'google'), provider_id (sub), optional refresh/access tokens if you need them.
     """
     __tablename__ = "oauth_accounts"
@@ -53,6 +56,9 @@ class OAuthAccount(Base):
 
 # --- Groups and memberships ---
 class Group(Base):
+    """
+    Contains basic information about groups
+    """
     __tablename__ = "groups"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -77,6 +83,9 @@ class Group(Base):
         return f"<Group id={self.id} name={self.name!r} creator={self.created_by}>"
 
 class GroupMember(Base):
+    """
+    Member associates to group associations
+    """
     __tablename__ = "group_members"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -105,12 +114,12 @@ class Transaction(Base):
     creator_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
-    title: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)   # e.g. "Dinner at X"
+    title: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
     memo: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # store amounts in integer "cents" to avoid floating point problems
     total_amount_cents: Mapped[int] = mapped_column(Integer, nullable=False)
-    currency: Mapped[Optional[str]] = mapped_column(String(8), nullable=True, server_default="USD")  # simple
+    currency: Mapped[Optional[str]] = mapped_column(String(8), nullable=True, server_default="USD") 
     exchange_rate_to_group: Mapped[Optional[float]] = mapped_column(nullable=True)
 
     group: Mapped["Group"] = relationship("Group", back_populates="transactions")
@@ -124,7 +133,6 @@ class Split(Base):
     """
     Each Split row records how much a particular user owes (or is owed) for a transaction.
     Convention: positive amount_cents means this person owes that amount for the transaction.
-    If you want payer model (one paid, rest owe), you can store who_paid flag or negative amounts.
     """
     __tablename__ = "splits"
 
@@ -133,7 +141,7 @@ class Split(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
 
     amount_cents: Mapped[int] = mapped_column(Integer, nullable=False)  # owed by user for this transaction
-    is_payer: Mapped[bool] = mapped_column(Boolean, server_default="0", nullable=False)  # did they actually pay upfront?
+    is_payer: Mapped[bool] = mapped_column(Boolean, server_default="0", nullable=False) 
     note: Mapped[Optional[str]] = mapped_column(String(400), nullable=True)
 
     transaction: Mapped["Transaction"] = relationship("Transaction", back_populates="splits")
