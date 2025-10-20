@@ -1,5 +1,6 @@
 # models.py
 from __future__ import annotations
+from datetime import datetime, timezone
 from typing import List, Optional
 from sqlalchemy import (
     Integer, String, Boolean, DateTime, ForeignKey, Text, func, Index, event
@@ -23,12 +24,26 @@ class User(Base):
     email: Mapped[Optional[str]] = mapped_column(String(320), unique=True, index=True, nullable=True)
     display_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, server_default="1", nullable=False)
+
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="1")
+    deleted_at: Mapped[Optional[DateTime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # relationships
     oauth_accounts: Mapped[List["OAuthAccount"]] = relationship("OAuthAccount", back_populates="user", cascade="all, delete-orphan")
     memberships: Mapped[List["GroupMember"]] = relationship("GroupMember", back_populates="user", cascade="all, delete-orphan")
     transactions_created: Mapped[List["Transaction"]] = relationship("Transaction", back_populates="creator")
+
+    def is_deleted(self) -> bool:
+        return self.deleted_at is not None or not self.is_active
+
+    def anonymize(self):
+        """
+        Clear personally-identifying information while preserving the DB record and id.
+        This supports the 'placeholder' requirement.
+        """
+        self.email = None
+        self.is_active = False
+        self.deleted_at = datetime.now(timezone.utc)  # type: ignore
 
     def __repr__(self):
         return f"<User id={self.id} email={self.email!r}>"
@@ -79,6 +94,15 @@ class Group(Base):
     members: Mapped[List["GroupMember"]] = relationship("GroupMember", back_populates="group", cascade="all, delete-orphan")
     transactions: Mapped[List["Transaction"]] = relationship("Transaction", back_populates="group", cascade="all, delete-orphan")
 
+    is_archived: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="0")
+    deleted_at: Mapped[Optional[DateTime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    def archive(self) -> None:
+        self.is_archived = True
+
+    def soft_delete(self):
+        self.deleted_at = datetime.now(timezone.utc)  # type: ignore
+
     def __repr__(self):
         return f"<Group id={self.id} name={self.name!r} creator={self.created_by}>"
 
@@ -97,9 +121,14 @@ class GroupMember(Base):
     group: Mapped["Group"] = relationship("Group", back_populates="members")
     user: Mapped["User"] = relationship("User", back_populates="memberships")
 
+    left_at: Mapped[Optional[DateTime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
     __table_args__ = (
         Index("ux_group_user", "group_id", "user_id", unique=True),
     )
+
+    def leave(self):
+        self.left_at = datetime.now(timezone.utc) # type: ignore
 
 # --- Transactions and splits ---
 class Transaction(Base):
