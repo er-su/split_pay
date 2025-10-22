@@ -31,7 +31,7 @@ class User(Base):
 
     # relationships
     memberships: Mapped[List["GroupMember"]] = relationship("GroupMember", back_populates="user", cascade="all, delete-orphan")
-    transactions_created: Mapped[List["Transaction"]] = relationship("Transaction", back_populates="creator")
+    transactions_created: Mapped[List["Transaction"]] = relationship("Transaction", back_populates="creator", foreign_keys="Transaction.creator_id")
 
     def is_deleted(self) -> bool:
         return self.deleted_at is not None or not self.is_active
@@ -153,7 +153,7 @@ class Transaction(Base):
     exchange_rate_to_group: Mapped[Optional[float]] = mapped_column(nullable=True)
 
     group: Mapped["Group"] = relationship("Group", back_populates="transactions")
-    creator: Mapped[Optional["User"]] = relationship("User", back_populates="transactions_created")
+    creator: Mapped[Optional["User"]] = relationship("User", back_populates="transactions_created", foreign_keys=[creator_id])
     splits: Mapped[List["Split"]] = relationship("Split", back_populates="transaction", cascade="all, delete-orphan")
 
     def __repr__(self):

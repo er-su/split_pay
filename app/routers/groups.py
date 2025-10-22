@@ -46,7 +46,7 @@ def _require_active_group(group: Group | None, enforce_archive: bool = False):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Group is archived")
 
 @router.post("/groups/", response_model=GroupOut, status_code=status.HTTP_201_CREATED, tags=["groups"])
-async def create_group(
+def create_group(
     payload: CreateGroupIn,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -74,7 +74,7 @@ async def create_group(
     return group
 
 @router.get("/groups/{group_id}", response_model=GroupOut, tags=["groups"])
-async def get_group(
+def get_group(
     group_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -88,7 +88,7 @@ async def get_group(
     return group
 
 @router.put("/groups/{group_id}", response_model=GroupOut, tags=["groups"])
-async def update_group(
+def update_group(
     group_id: int,
     payload: UpdateGroupIn,
     db: Session = Depends(get_db),
@@ -113,7 +113,7 @@ async def update_group(
 # Archive / Unarchive group (admin only)
 # -------------------------
 @router.post("/groups/{group_id}/archive", status_code=status.HTTP_204_NO_CONTENT, tags=["groups"])
-async def archive_group(
+def archive_group(
     group_id: int, 
     db: Session = Depends(get_db), 
     current_user=Depends(get_current_user)
@@ -128,7 +128,7 @@ async def archive_group(
     return None
 
 @router.post("/groups/{group_id}/unarchive", status_code=status.HTTP_204_NO_CONTENT, tags=["groups"])
-async def unarchive_group(
+def unarchive_group(
     group_id: int, 
     db: Session = Depends(get_db), 
     current_user=Depends(get_current_user)
@@ -143,7 +143,7 @@ async def unarchive_group(
     return None
 
 @router.delete("/groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["groups"])
-async def soft_delete_group(
+def soft_delete_group(
     group_id: int, 
     db: Session = Depends(get_db), 
     current_user=Depends(get_current_user), 
