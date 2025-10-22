@@ -24,12 +24,12 @@ class User(Base):
     email: Mapped[Optional[str]] = mapped_column(String(320), unique=True, index=True, nullable=True)
     display_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    google_sub: Mapped[str] = mapped_column(String, unique=True, nullable=False)
 
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="1")
     deleted_at: Mapped[Optional[DateTime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # relationships
-    oauth_accounts: Mapped[List["OAuthAccount"]] = relationship("OAuthAccount", back_populates="user", cascade="all, delete-orphan")
     memberships: Mapped[List["GroupMember"]] = relationship("GroupMember", back_populates="user", cascade="all, delete-orphan")
     transactions_created: Mapped[List["Transaction"]] = relationship("Transaction", back_populates="creator")
 
@@ -48,12 +48,12 @@ class User(Base):
     def __repr__(self):
         return f"<User id={self.id} email={self.email!r}>"
 
-class OAuthAccount(Base):
+#class OAuthAccount(Base):
     """
     store minimal OAuth provider link (e.g. Google).
     provider_name (e.g. 'google'), provider_id (sub), optional refresh/access tokens if you need them.
     """
-    __tablename__ = "oauth_accounts"
+"""     __tablename__ = "oauth_accounts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
@@ -67,7 +67,7 @@ class OAuthAccount(Base):
 
     __table_args__ = (
         Index("ux_oauth_provider_user", "provider", "provider_user_id", unique=True),
-    )
+    ) """
 
 # --- Groups and memberships ---
 class Group(Base):
@@ -140,6 +140,7 @@ class Transaction(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     group_id: Mapped[int] = mapped_column(Integer, ForeignKey("groups.id", ondelete="CASCADE"), nullable=False, index=True)
+    payer_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     creator_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 

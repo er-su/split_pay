@@ -6,8 +6,7 @@ Cents = Annotated[int, Field(ge=0)]
 # currency code string (simple constraint)
 CurrencyCode = Annotated[str, Field(min_length=3, max_length=8)]
 
-# ---------- AUTH / USER ----------
-
+# User in/out
 class UserOut(BaseModel):
     """Public user representation returned to clients."""
     id: int
@@ -16,7 +15,15 @@ class UserOut(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class CreateUserIn(BaseModel):
+    """
+    Expected input fields for user creation
+    """
 
+    email: Optional[EmailStr]
+    display_name: Optional[str]
+
+# Token out for auth
 class TokenOut(BaseModel):
     """Auth response that contains the app-issued access token and user info."""
     access_token: str
@@ -26,8 +33,7 @@ class TokenOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-# ---------- GROUPS ----------
-
+# Group in/out/update
 class CreateGroupIn(BaseModel):
     """Request body for creating a group."""
     name: Annotated[str, Field(max_length=200)]
@@ -50,29 +56,38 @@ class GroupOut(BaseModel):
 class UpdateGroupIn(CreateGroupIn):
     """Same structure as CreateGroupIn but optional fields for PATCH."""
     name: Optional[str] = None
+    description: Optional[Annotated[str, Field(max_length=500)]] = None
     base_currency: Optional[str] = None
 
+# Member in/out
 class CreateMemberIn(BaseModel):
     user_id: int
     group_id: int
+    make_admin: bool = False
 
 class MemberOut(BaseModel):
     user_id: Optional[int]
-    display_name_snapshot: Optional[str]
+    display_name: Optional[str]
     joined_at: Optional[str]
     left_at: Optional[str]
     is_admin: bool
 
     model_config = ConfigDict(from_attributes=True)
 
-# ---------- TRANSACTIONS & SPLITS ----------
-
+# Splits in/out
 class SplitIn(BaseModel):
     """Input representation of a split: who pays which share (in cents)."""
     user_id: int
-    share_cents: Cents
+    amount_cents: Cents
 
+class SplitOut(BaseModel):
+    """Output representation for a split row."""
+    user_id: int
+    share_cents: int
 
+    model_config = ConfigDict(from_attributes=True)
+
+#Transaction in/out/update
 class CreateTransactionIn(BaseModel):
     """
     Request to create a transaction.
@@ -99,7 +114,6 @@ class CreateTransactionIn(BaseModel):
             raise ValueError("At least one split is required")
         return v
 
-
 class UpdateTransactionIn(BaseModel):
     """
     Partial update payload for transactions.
@@ -120,14 +134,6 @@ class UpdateTransactionIn(BaseModel):
         return v
 
 
-class SplitOut(BaseModel):
-    """Output representation for a split row."""
-    user_id: int
-    share_cents: int
-
-    model_config = ConfigDict(from_attributes=True)
-
-
 class TransactionOut(BaseModel):
     """Output representation for a transaction (includes splits)."""
     id: int
@@ -138,13 +144,11 @@ class TransactionOut(BaseModel):
     exchange_rate_to_group: Optional[float]
     title: Optional[str]
     memo: Optional[str]
-    splits: Optional[List[SplitOut]] = None
+    splits: List[SplitOut]
 
     model_config = ConfigDict(from_attributes=True)
 
-
-# ---------- BALANCES ----------
-
+# Balances in/out
 class BalanceItem(BaseModel):
     """Net owed amount between requester and another member.
     Positive -> other_user owes requester.
