@@ -1,7 +1,7 @@
 # db.py
 from sqlalchemy import create_engine, event, select, func, case
 from sqlalchemy.orm import sessionmaker, Session
-from .schema import Group, Transaction, Split
+from .schema import Group, Transaction, Split, User, GroupMember
 from decimal import Decimal, ROUND_HALF_UP
 from typing import Dict
 
@@ -30,8 +30,33 @@ def make_engine(url: str, **kwargs):
 
     return engine
 
-def create_group(db: Session, name: str, creator_id: int | None, base_currency: str = "USD",
-                 description: str | None = None, location_name: str | None = None) -> Group:
+def create_user(
+    db: Session,
+    email: str,
+    display_name:str | None
+) -> User:
+    """
+    Populates users table with a user
+    """
+    u = User(
+        email=email,
+        display_name=display_name
+    )
+
+    db.add(u)
+    db.commit()
+    db.refresh(u)
+    return u
+
+def create_group(
+    db: Session,
+    name: str,
+    creator_id: int | None,
+    base_currency: str = "USD",
+    description: str | None = None,
+    location_name: str | None = None
+) -> Group:
+    
     g = Group(
         name=name,
         description=description,
@@ -42,8 +67,34 @@ def create_group(db: Session, name: str, creator_id: int | None, base_currency: 
     db.add(g)
     db.commit()
     db.refresh(g)
+
+    # Create default membership of self to group
+    m = create_membership(
+        db=db,
+        group_id=g.id,
+        user_id=g.created_by,
+        is_admin=True
+    )
+
     return g
 
+def create_membership(
+    db: Session,
+    group_id: int,
+    user_id: int,
+    is_admin: bool,
+) -> GroupMember:
+    
+    m = GroupMember(
+        group_id=group_id,
+        user_id=user_id,
+        is_admin=is_admin,
+    )
+
+    db.add(m)
+    db.commit()
+    db.refresh(m)
+    return m
 
 def create_transaction_with_splits(
     db: Session,

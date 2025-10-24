@@ -85,7 +85,6 @@ class Group(Base):
     # base currency
     base_currency: Mapped[str] = mapped_column(String(8), nullable=False, server_default="USD")
 
-
     # optional location fields (keep simple)
     location_name: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
     location_lat: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)   # store as text or use geo type if needed
@@ -104,7 +103,7 @@ class Group(Base):
         self.deleted_at = datetime.now(timezone.utc)  # type: ignore
 
     def __repr__(self):
-        return f"<Group id={self.id} name={self.name!r} creator={self.created_by}>"
+        return f"<Group id={self.id} name={self.name!r} desc={self.description} currency={self.base_currency} creator={self.created_by}>"
 
 class GroupMember(Base):
     """
@@ -129,6 +128,9 @@ class GroupMember(Base):
 
     def leave(self):
         self.left_at = datetime.now(timezone.utc) # type: ignore
+
+    def __repr__(self):
+        return (f"<user={self.user_id} group={self.group_id} joined={self.joined_at} is_admin={self.is_admin}")
 
 # --- Transactions and splits ---
 class Transaction(Base):

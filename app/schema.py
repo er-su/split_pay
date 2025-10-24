@@ -48,8 +48,9 @@ class GroupOut(BaseModel):
     id: int
     name: str
     description: Optional[str]
-    base_currency: str
+    base_currency: CurrencyCode
     created_by: Optional[int]
+    location_name: Optional[str]
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -62,11 +63,11 @@ class UpdateGroupIn(CreateGroupIn):
 # Member in/out
 class CreateMemberIn(BaseModel):
     user_id: int
-    group_id: int
     make_admin: bool = False
 
 class MemberOut(BaseModel):
-    user_id: Optional[int]
+    user_id: int
+    group_id: int
     display_name: Optional[str]
     joined_at: Optional[str]
     left_at: Optional[str]

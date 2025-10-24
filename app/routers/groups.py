@@ -71,7 +71,7 @@ def create_group(
     db.add(gm)
     db.commit()
     db.refresh(group)
-    return group
+    return GroupOut.model_validate(group)
 
 @router.get("/groups/{group_id}", response_model=GroupOut, tags=["groups"])
 def get_group(
@@ -85,7 +85,7 @@ def get_group(
     group = db.get(Group, group_id)
     _require_active_group(group)
     _require_member(db, group_id, current_user.id)
-    return group
+    return GroupOut.model_validate(group)
 
 @router.put("/groups/{group_id}", response_model=GroupOut, tags=["groups"])
 def update_group(
@@ -102,12 +102,13 @@ def update_group(
     _require_admin(db, group_id, current_user.id)
 
     for field, value in payload.model_dump(exclude_unset=True).items():
-        setattr(group, field, value)
+        if value is not None:
+            setattr(group, field, value)
     
     db.commit()
     db.refresh(group)
 
-    return group
+    return GroupOut.model_validate(group)
 
 # -------------------------
 # Archive / Unarchive group (admin only)
@@ -120,6 +121,10 @@ def archive_group(
 ):
     """Archive group (read-only). Only admin."""
     group = db.get(Group, group_id)
+
+    if group.is_archived:
+        return None
+    
     _require_active_group(group)
     _require_admin(db, group_id, current_user.id)
     group.is_archived = True # type: ignore
@@ -135,6 +140,10 @@ def unarchive_group(
 ):
     """Unarchive group. Only admin."""
     group = db.get(Group, group_id)
+    
+    if group.is_archived is False:
+        return None
+    
     _require_active_group(group)
     _require_admin(db, group_id, current_user.id)
     group.is_archived = False # type: ignore
@@ -180,7 +189,7 @@ def add_member(
 ):
     group = db.get(Group, group_id)
 
-    _require_active_group(group)
+    _require_active_group(group, True)
     _require_admin(db, group_id, current_user.id)
 
     user = db.get(User, payload.user_id)
@@ -213,18 +222,22 @@ def add_member(
 
     return MemberOut(
         user_id=gm.user_id,
+        group_id=group_id,
         display_name=user.display_name,
         joined_at=str(gm.joined_at),
         left_at=str(gm.left_at) if gm.left_at else None,
         is_admin=gm.is_admin,
     )
 
-@router.get("/{group_id}/members", response_model=List[MemberOut], tags=["members"])
-def list_members(
+@router.get("/groups/{group_id}/members", response_model=List[MemberOut], tags=["members"])
+def list_non_left_members(
     group_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Only returns members that are present (have not left)
+    """
     group = db.get(Group, group_id)
     _require_active_group(group)
     _require_member(db, group_id, current_user.id)
@@ -233,15 +246,42 @@ def list_members(
     return [
         MemberOut(
             user_id=m.user_id,
+            group_id=m.group_id,
+            display_name=m.user.display_name,
+            joined_at=m.joined_at.isoformat(), # type: ignore
+            left_at=m.left_at.isoformat() if m.left_at else None, # type: ignore
+            is_admin=m.is_admin,
+        )
+        for m in members if m.left_at is None
+    ]
+
+@router.get("/groups/{group_id}/all-members", response_model=List[MemberOut], tags=["members"])
+def list_all_members(
+    group_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),    
+):
+    """
+    Returns all members, even those who have left
+    """
+    group = db.get(Group, group_id)
+    _require_active_group(group)
+    _require_member(db, group_id, current_user.id)
+
+    members = db.query(GroupMember).filter(GroupMember.group_id == group_id).all()
+    return [
+        MemberOut(
+            user_id=m.user_id,
+            group_id=m.group_id,
             display_name=m.user.display_name,
             joined_at=m.joined_at.isoformat(), # type: ignore
             left_at=m.left_at.isoformat() if m.left_at else None, # type: ignore
             is_admin=m.is_admin,
         )
         for m in members
-    ]
+    ]  
 
-@router.delete("/{group_id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["members"])
+@router.delete("/groups/{group_id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["members"])
 def remove_member(
     group_id: int,
     user_id: int,
@@ -249,7 +289,7 @@ def remove_member(
     current_user: User = Depends(get_current_user),
 ):
     group = db.get(Group, group_id)
-    _require_active_group(group)
+    _require_active_group(group, True)
 
     # allow self-leave or admin removal
     if current_user.id != user_id:
@@ -264,18 +304,17 @@ def remove_member(
     if not gm:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Membership not found")
 
-    with db.begin():
-        gm.left_at = datetime.now(timezone.utc) # type: ignore
-        db.flush()
+    gm.left_at = datetime.now(timezone.utc) # type: ignore
+    db.flush()
 
-        active_count = (
-            db.query(GroupMember)
-            .filter(GroupMember.group_id == group_id, GroupMember.left_at.is_(None))
-            .count()
-        )
+    active_count = (
+        db.query(GroupMember)
+        .filter(GroupMember.group_id == group_id, GroupMember.left_at.is_(None))
+        .count()
+    )
 
-        if active_count == 0:
-            group.soft_delete() # type: ignore
+    if active_count == 0:
+        group.soft_delete() # type: ignore
 
 # -------------------------
 # Account deletion (anonymize user, preserve placeholders)
