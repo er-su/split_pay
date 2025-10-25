@@ -18,6 +18,9 @@ from app.schema import (
 router = APIRouter(tags=["transactions"])
 
 def _verify_splits(payload: CreateTransactionIn):
+    if payload.splits is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid split sums")
+
     total_split_sum = 0
     for split in payload.splits:
         total_split_sum += split.amount_cents
@@ -122,7 +125,7 @@ def get_transaction(
 
 # edit specific transaction
 @router.put("/groups/{group_id}/transactions/{transaction_id}", response_model=TransactionOut)
-def update_group(
+def update_transaction(
     group_id: int,
     transaction_id: int,
     payload: UpdateTransactionIn,

@@ -1,6 +1,8 @@
-from typing import List, Optional, Annotated
+from typing import Dict, List, Optional, Annotated
 from pydantic import BaseModel, Field, EmailStr, field_validator, ConfigDict
 from datetime import datetime
+
+from backend.schema import Group
 
 # integer cents (non-negative)
 Cents = Annotated[int, Field(ge=0)]
@@ -65,6 +67,18 @@ class UpdateGroupIn(CreateGroupIn):
     name: Optional[str] = None
     description: Optional[Annotated[str, Field(max_length=500)]] = None
     base_currency: Optional[str] = None
+
+OtherUserId = Annotated[int, Field(description="The other user owes the current user")]
+Amount = Annotated[int, Field(description="The amount they owe")]
+class GroupDuesOut(BaseModel):
+    dues: Dict[OtherUserId, Amount]
+
+    def __init__(self, group: Group, self_id: int):
+        """
+        In general, the number of dues == number of users in a group - 1 (self)
+        """
+
+        self.dues = {(membership.user_id) : 0 for membership in group.members if membership.user_id != self_id}
 
 # Member in/out
 class CreateMemberIn(BaseModel):

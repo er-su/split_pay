@@ -66,14 +66,13 @@ def test_create_transaction_as_member(client: TestClient, db_session: Session, s
 
     payload = {
         "payer_id": int(users[1].id),
-        "total_amount_cents": 9000,
+        "total_amount_cents": 6000,
         "exchange_rate_to_group": float(1.0),
         "currency": "USD",
         "title": "Dinner",
         "memo": "Testing",
         "splits": [
             {"user_id": int(users[0].id), "amount_cents": 3000},
-            {"user_id": int(users[1].id), "amount_cents": 3000},
             {"user_id": int(users[2].id), "amount_cents": 3000},
         ],
     }
@@ -81,14 +80,14 @@ def test_create_transaction_as_member(client: TestClient, db_session: Session, s
     res = client.post(f"/groups/{group.id}/transactions", json=payload)
     assert res.status_code == 200
     data = res.json()
-    assert data["total_amount_cents"] == 9000
-    assert len(data["splits"]) == 3
+    assert data["total_amount_cents"] == 6000
+    assert len(data["splits"]) == 2
     assert data["payer_id"] == users[1].id
 
     # Check DB persisted
     tx = db_session.query(Transaction).filter_by(group_id=group.id).first()
     assert tx.title == "Dinner"
-    assert len(tx.splits) == 3
+    assert len(tx.splits) == 2
 
 def test_create_transaction_non_member_forbidden(client, db_session, setup_env):
     group, users, members = setup_env
@@ -217,6 +216,9 @@ def test_delete_transaction_by_admin(client, db_session, setup_env):
         payer_id=users[1].id,
         total_amount_cents=2500,
         currency="USD",
+        splits=[
+            {}
+        ]
     )
     db_session.add(tx)
     db_session.commit()
@@ -244,3 +246,26 @@ def test_delete_transaction_forbidden(client, db_session, setup_env):
 
     res = client.delete(f"/groups/{group.id}/transaction/{tx.id}")
     assert res.status_code == 403
+
+def test_transaction_splits_dues(client: TestClient, db_session: Session, setup_env):
+    group, users, _ = setup_env
+    app.dependency_overrides[get_current_user] = get_current_user_override(users[0])
+
+    # user 1 and 2 owes user 0 3000 cents
+    payload = {
+        "payer_id": int(users[0].id),
+        "total_amount_cents": 6000,
+        "exchange_rate_to_group": float(1.0),
+        "currency": "USD",
+        "title": "Dinner",
+        "memo": "Testing",
+        "splits": [
+            {"user_id": int(users[1].id), "amount_cents": 3000},
+            {"user_id": int(users[2].id), "amount_cents": 3000},
+        ],
+    }
+    
+    resp = client.post("/groups/1/transactions", json=payload)
+    assert resp.status_code == 200
+
+    

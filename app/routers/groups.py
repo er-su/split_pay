@@ -2,12 +2,13 @@
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from backend.schema import Group, GroupMember, User
 from app.deps import get_db, get_current_user
 from app.schema import (
     CreateGroupIn,
+    GroupDuesOut,
     GroupOut,
     MemberOut,
     UpdateGroupIn,
@@ -179,6 +180,33 @@ def soft_delete_group(
     db.commit()
     return None
 
+@router.get("/groups/{group_id}/dues", response_model=GroupDuesOut)
+def get_current_dues(
+    group_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user), 
+):
+    group = db.get(Group, group_id)
+    _require_member(db, group_id, current_user.id)
+    _require_active_group(group, True)
+
+    dues = GroupDuesOut(group, current_user.id)
+    for transaction in group.transactions:
+        # is the payer, then add all the values
+        if transaction.payer_id == current_user.id:
+            for split in transaction.splits:
+                assert split.user_id != current_user.id
+                dues[split.user_id] += split.amount_cents
+        
+        # not the payer, see if they are in the splits
+        else:
+            for split in transaction.splits:
+                # if the user is in the split
+                if split.user_id == current_user.id:
+                    dues[transaction.payer_id] - split.amount_cents
+
+    return dues
+
 # Member stuff
 @router.post("/groups/{group_id}/members", response_model=MemberOut, tags=["members"])
 def add_member(
@@ -315,29 +343,3 @@ def remove_member(
 
     if active_count == 0:
         group.soft_delete() # type: ignore
-
-# -------------------------
-# Account deletion (anonymize user, preserve placeholders)
-# -------------------------
-#@router.post("/me/delete-account", status_code=204)
-#def delete_my_account(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    """
-    An endpoint users call to delete their account. This will:
-    - anonymize their User record (email cleared, display_name changed to 'Deleted user {id}')
-    - keep GroupMember rows intact, preserving user_display_name_snapshot for group history.
-    """
-    """  user = db.get(User, current_user.id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # Anonymize the user
-    user.anonymize()
-
-    # Note: do not delete GroupMember records — they are kept to provide placeholders.
-    # But we ensure user_display_name_snapshot exists for any membership lacking it.
-    for gm in user.memberships:
-        if not gm.user_display_name_snapshot:
-            gm.user_display_name_snapshot = user.display_name or f"Deleted user {user.id}"
-    db.commit()
-    return None
- """
