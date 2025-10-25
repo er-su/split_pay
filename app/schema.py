@@ -1,6 +1,6 @@
 from typing import List, Optional, Annotated
 from pydantic import BaseModel, Field, EmailStr, field_validator, ConfigDict
-from sqlalchemy import DateTime
+from datetime import datetime
 
 # integer cents (non-negative)
 Cents = Annotated[int, Field(ge=0)]
@@ -13,7 +13,7 @@ class UserOut(BaseModel):
     id: int
     email: Optional[EmailStr] = None
     display_name: Optional[str] = None
-    deleted_at: Optional[DateTime] = None
+    deleted_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
 
