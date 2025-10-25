@@ -86,6 +86,7 @@ def test_create_transaction_as_member(client: TestClient, db_session: Session, s
 
     # Check DB persisted
     tx = db_session.query(Transaction).filter_by(group_id=group.id).first()
+    assert tx is not None
     assert tx.title == "Dinner"
     assert len(tx.splits) == 2
 
@@ -119,6 +120,9 @@ def test_create_transaction_invalid_splits_validation(client, db_session, setup_
     res = client.post(f"/groups/{group.id}/transactions", json=payload)
     # Should fail Pydantic validation before hitting endpoint
     assert res.status_code in (422, 400)
+
+    # now test if the sum doesnt sum up
+    
 
 
 # ----------------------------------------------------------

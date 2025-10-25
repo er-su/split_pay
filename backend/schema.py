@@ -1,10 +1,11 @@
 # models.py
 from __future__ import annotations
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import List, Optional
 from pydantic import EmailStr
 from sqlalchemy import (
-    Integer, String, Boolean, DateTime, ForeignKey, Text, func, Index, event
+    Integer, String, Boolean, DateTime, ForeignKey, Text, func, Index, event, Numeric
 )
 from sqlalchemy.orm import (
     DeclarativeBase, Mapped, mapped_column, relationship
@@ -48,27 +49,6 @@ class User(Base):
 
     def __repr__(self):
         return f"<User id={self.id} email={self.email!r}>"
-
-#class OAuthAccount(Base):
-    """
-    store minimal OAuth provider link (e.g. Google).
-    provider_name (e.g. 'google'), provider_id (sub), optional refresh/access tokens if you need them.
-    """
-"""     __tablename__ = "oauth_accounts"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    provider: Mapped[str] = mapped_column(String(50), nullable=False)   # 'google'
-    provider_user_id: Mapped[str] = mapped_column(String(200), nullable=False, index=True)  # provider's user id (sub)
-    access_token: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    refresh_token: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-
-    user: Mapped["User"] = relationship("User", back_populates="oauth_accounts")
-
-    __table_args__ = (
-        Index("ux_oauth_provider_user", "provider", "provider_user_id", unique=True),
-    ) """
 
 # --- Groups and memberships ---
 class Group(Base):
@@ -151,7 +131,7 @@ class Transaction(Base):
     memo: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # store amounts in integer "cents" to avoid floating point problems
-    total_amount_cents: Mapped[int] = mapped_column(Integer, nullable=False)
+    total_amount_cents: Mapped[Decimal] = mapped_column(Numeric(precision=18, scale=6), nullable=False)
     currency: Mapped[Optional[str]] = mapped_column(String(8), nullable=True, server_default="USD") 
     exchange_rate_to_group: Mapped[Optional[float]] = mapped_column(nullable=True)
 
@@ -173,7 +153,7 @@ class Split(Base):
     transaction_id: Mapped[int] = mapped_column(Integer, ForeignKey("transactions.id", ondelete="CASCADE"), nullable=False, index=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    amount_cents: Mapped[int] = mapped_column(Integer, nullable=False)  # owed by user for this transaction
+    amount_cents: Mapped[Decimal] = mapped_column(Numeric(precision=18, scale=6), nullable=False)  # owed by user for this transaction
     is_payer: Mapped[bool] = mapped_column(Boolean, server_default="0", nullable=False) 
     note: Mapped[Optional[str]] = mapped_column(String(400), nullable=True)
 

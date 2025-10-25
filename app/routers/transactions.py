@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, FastAPI
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from backend.schema import Transaction, User, Split, Group, GroupMember
 from app.deps import get_db, get_current_user
@@ -17,17 +17,61 @@ from app.schema import (
 
 router = APIRouter(tags=["transactions"])
 
-def _verify_splits(payload: CreateTransactionIn):
+def _verify_splits(payload: CreateTransactionIn | UpdateTransactionIn, user_ids_in_group: Set[int], current_user_id: int):
     if payload.splits is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid split sums")
 
     total_split_sum = 0
     for split in payload.splits:
+        if split.user_id not in user_ids_in_group or split.user_id == current_user_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid split sums")
         total_split_sum += split.amount_cents
 
-    # Ensure splits add up or account for rounding error
-    if not((total_split_sum  == payload.total_amount_cents) or (total_split_sum > payload.total_amount_cents - len(payload.splits) and total_split_sum <= payload.total_amount_cents)):
+    # Ensure splits add up or account for rounding error (ignore pylance error as we verify that they are not None before passing into function)
+    if not((total_split_sum  == payload.total_amount_cents) or (total_split_sum > (payload.total_amount_cents - len(payload.splits)) and total_split_sum <= payload.total_amount_cents)): # type: ignore
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid split sums")
+    
+def _verify_update_splits(old_transaction: Transaction, payload: UpdateTransactionIn, user_ids_in_group: Set[int], current_user_id: int):
+    # if splits and total are not updated, then everything should be fine
+    if payload.splits is None and payload.total_amount_cents is None:
+        return None
+    
+    # else verify that the splits and payload are updated, must pull the original total to verify
+    
+    # if both were updated
+    if payload.total_amount_cents is not None and payload.splits is not None:
+        # verify as normal
+        _verify_splits(payload, user_ids_in_group, current_user_id)
+
+    elif payload.total_amount_cents is None:
+        # we verify as normal by assuming that the old value is inserted
+        payload.total_amount_cents = old_transaction.total_amount_cents
+        _verify_splits(payload, user_ids_in_group, current_user_id)
+
+    # if the splits are unchanged do the same
+    else:
+        payload.splits = [SplitIn.model_validate(split) for split in old_transaction.splits]
+        _verify_splits(payload, user_ids_in_group, current_user_id)
+
+def _get_all_users_in_group(db: Session, group_id: int, exclude_deleted:bool = False) -> Set[int]:
+    if exclude_deleted:
+        stmt = (
+            select(User.id)
+            .join(GroupMember, GroupMember.user_id == User.id)
+            .where(
+                GroupMember.group_id == group_id,
+                User.deleted_at.is_(None),
+            )
+        )
+    else:
+        stmt = (
+            select(User.id)
+            .join(GroupMember, GroupMember.user_id == User.id)
+            .where(
+                GroupMember.group_id == group_id,
+            )
+        )
+    return set(db.scalars(stmt))
 
 def _require_member(db: Session, group_id: int, user_id: int) -> GroupMember:
     gm = (
@@ -70,15 +114,14 @@ def create_transaction(
     _require_member(db, group_id, current_user.id)
     _require_active_group(group, True)
 
-    splits = []
-    total_split_sum = 0
-    for split in payload.splits:
-        splits.append(Split(user_id=split.user_id, amount_cents=split.amount_cents, note=split.note))
-        total_split_sum += split.amount_cents
+    group_user_ids = _get_all_users_in_group(db, group_id, True)
+    _verify_splits(payload, group_user_ids, current_user.id)
 
-    # Ensure splits add up or account for rounding error
-    if not((total_split_sum  == payload.total_amount_cents) or (total_split_sum > payload.total_amount_cents - len(payload.splits) and total_split_sum <= payload.total_amount_cents)):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid split sums")
+    splits = [Split(
+        user_id=split.user_id, 
+        amount_cents=split.amount_cents, 
+        note=split.note
+    ) for split in payload.splits]
 
     t = Transaction(
         group_id = group_id,
@@ -137,7 +180,12 @@ def update_transaction(
     Returns a 400 if the splits do not properly sum
     """
     transaction = db.get(Transaction, transaction_id)
-    _verify_splits(payload)
+
+    if transaction is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Transaction not found")
+    
+    group_user_ids = _get_all_users_in_group(db, group_id, False)
+    _verify_update_splits(transaction, payload, group_user_ids, current_user.id)
     if transaction is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Transaction not found")
     

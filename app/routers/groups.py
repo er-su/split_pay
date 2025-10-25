@@ -123,7 +123,7 @@ def archive_group(
     """Archive group (read-only). Only admin."""
     group = db.get(Group, group_id)
 
-    if group.is_archived:
+    if group.is_archived: # type: ignore
         return None
     
     _require_active_group(group)
@@ -142,7 +142,7 @@ def unarchive_group(
     """Unarchive group. Only admin."""
     group = db.get(Group, group_id)
     
-    if group.is_archived is False:
+    if group.is_archived is False: # type: ignore
         return None
     
     _require_active_group(group)
@@ -190,20 +190,20 @@ def get_current_dues(
     _require_member(db, group_id, current_user.id)
     _require_active_group(group, True)
 
-    dues = GroupDuesOut(group, current_user.id)
-    for transaction in group.transactions:
+    dues = GroupDuesOut(group, current_user.id) # type: ignore
+    for transaction in group.transactions: # type: ignore
         # is the payer, then add all the values
         if transaction.payer_id == current_user.id:
             for split in transaction.splits:
                 assert split.user_id != current_user.id
-                dues[split.user_id] += split.amount_cents
+                dues.dues[split.user_id] += split.amount_cents
         
         # not the payer, see if they are in the splits
         else:
             for split in transaction.splits:
                 # if the user is in the split
                 if split.user_id == current_user.id:
-                    dues[transaction.payer_id] - split.amount_cents
+                    dues.dues[transaction.payer_id] -= split.amount_cents
 
     return dues
 

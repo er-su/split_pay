@@ -1,13 +1,9 @@
 from typing import Dict, List, Optional, Annotated
 from pydantic import BaseModel, Field, EmailStr, field_validator, ConfigDict
 from datetime import datetime
-
+from pydantic_extra_types.currency_code import Currency
+from decimal import Decimal
 from backend.schema import Group
-
-# integer cents (non-negative)
-Cents = Annotated[int, Field(ge=0)]
-# currency code string (simple constraint)
-CurrencyCode = Annotated[str, Field(min_length=3, max_length=8)]
 
 # User in/out
 class UserOut(BaseModel):
@@ -40,13 +36,12 @@ class TokenOut(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-
 # Group in/out/update
 class CreateGroupIn(BaseModel):
     """Request body for creating a group."""
     name: Annotated[str, Field(max_length=200)]
     description: Optional[Annotated[str, Field(max_length=500)]] = None
-    base_currency: CurrencyCode = "USD"
+    base_currency: Currency = "USD" # type: ignore
     location_name: Optional[Annotated[str, Field(max_length=300)]] = None
     location_lat: Optional[Annotated[str, Field(max_length=50)]] = None
     location_lon: Optional[Annotated[str, Field(max_length=50)]] = None
@@ -56,7 +51,7 @@ class GroupOut(BaseModel):
     id: int
     name: str
     description: Optional[str]
-    base_currency: CurrencyCode
+    base_currency: Currency
     created_by: Optional[int]
     location_name: Optional[str]
 
@@ -69,7 +64,7 @@ class UpdateGroupIn(CreateGroupIn):
     base_currency: Optional[str] = None
 
 OtherUserId = Annotated[int, Field(description="The other user owes the current user")]
-Amount = Annotated[int, Field(description="The amount they owe")]
+Amount = Annotated[Decimal, Field(description="The amount they owe")]
 class GroupDuesOut(BaseModel):
     dues: Dict[OtherUserId, Amount]
 
@@ -78,7 +73,7 @@ class GroupDuesOut(BaseModel):
         In general, the number of dues == number of users in a group - 1 (self)
         """
 
-        self.dues = {(membership.user_id) : 0 for membership in group.members if membership.user_id != self_id}
+        self.dues = {(membership.user_id) : Decimal("0.00") for membership in group.members if membership.user_id != self_id}
 
 # Member in/out
 class CreateMemberIn(BaseModel):
@@ -99,13 +94,13 @@ class MemberOut(BaseModel):
 class SplitIn(BaseModel):
     """Input representation of a split: who pays which share (in cents)."""
     user_id: int
-    amount_cents: Cents
+    amount_cents: Annotated[Decimal, Field(ge=0)]
     note: Optional[str] = None
 
 class SplitOut(BaseModel):
     """Output representation for a split row."""
     user_id: int
-    amount_cents: Cents
+    amount_cents: Annotated[Decimal, Field(ge=0)]
     note: Optional[str]
 
     model_config = ConfigDict(from_attributes=True)
@@ -122,8 +117,8 @@ class CreateTransactionIn(BaseModel):
     - splits: list of SplitIn; server will validate they are non-empty and sums are checked in service layer
     """
     payer_id: int
-    total_amount_cents: Cents
-    currency: CurrencyCode = "USD"
+    total_amount_cents: Decimal
+    currency: Currency = "USD" # type: ignore
     exchange_rate_to_group: Optional[float] = None
     title: Optional[Annotated[str, Field(max_length=300)]] = None
     memo: Optional[str] = None
@@ -144,7 +139,7 @@ class UpdateTransactionIn(BaseModel):
     """
     title: Optional[Annotated[str, Field(max_length=300)]] = None
     memo: Optional[str] = None
-    total_amount_cents: Optional[Cents] = None
+    total_amount_cents: Annotated[Optional[Decimal], Field(ge=0)] = None
     splits: Optional[List[SplitIn]] = None
 
     @field_validator("splits")
@@ -162,7 +157,7 @@ class TransactionOut(BaseModel):
     id: int
     group_id: int
     payer_id: int
-    total_amount_cents: Cents
+    total_amount_cents: Annotated[Decimal, Field(ge=0)]
     currency: str
     exchange_rate_to_group: Optional[float]
     title: Optional[str]
