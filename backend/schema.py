@@ -2,6 +2,7 @@
 from __future__ import annotations
 from datetime import datetime, timezone
 from typing import List, Optional
+from pydantic import EmailStr
 from sqlalchemy import (
     Integer, String, Boolean, DateTime, ForeignKey, Text, func, Index, event
 )
@@ -21,7 +22,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    email: Mapped[Optional[str]] = mapped_column(String(320), unique=True, index=True, nullable=True)
+    email: Mapped[Optional[EmailStr]] = mapped_column(String(320), unique=True, index=True, nullable=True)
     display_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     google_sub: Mapped[str] = mapped_column(String, unique=True, nullable=False)

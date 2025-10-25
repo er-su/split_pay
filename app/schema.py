@@ -1,5 +1,6 @@
 from typing import List, Optional, Annotated
 from pydantic import BaseModel, Field, EmailStr, field_validator, ConfigDict
+from sqlalchemy import DateTime
 
 # integer cents (non-negative)
 Cents = Annotated[int, Field(ge=0)]
@@ -12,6 +13,7 @@ class UserOut(BaseModel):
     id: int
     email: Optional[EmailStr] = None
     display_name: Optional[str] = None
+    deleted_at: Optional[DateTime] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -19,7 +21,11 @@ class CreateUserIn(BaseModel):
     """
     Expected input fields for user creation
     """
+    email: EmailStr
+    display_name: Optional[str] = "No Name User"
+    google_sub: str
 
+class EditUserIn(BaseModel):
     email: Optional[EmailStr]
     display_name: Optional[str]
 
@@ -80,11 +86,13 @@ class SplitIn(BaseModel):
     """Input representation of a split: who pays which share (in cents)."""
     user_id: int
     amount_cents: Cents
+    note: Optional[str] = None
 
 class SplitOut(BaseModel):
     """Output representation for a split row."""
     user_id: int
-    share_cents: int
+    amount_cents: Cents
+    note: Optional[str]
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -140,7 +148,7 @@ class TransactionOut(BaseModel):
     id: int
     group_id: int
     payer_id: int
-    total_amount_cents: int
+    total_amount_cents: Cents
     currency: str
     exchange_rate_to_group: Optional[float]
     title: Optional[str]
@@ -157,7 +165,6 @@ class BalanceItem(BaseModel):
     """
     other_user_id: int
     net_cents: int
-
 
 class BalancesOut(BaseModel):
     """Balances summary for a user within a group (returned by balances endpoint)."""
