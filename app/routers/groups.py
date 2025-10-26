@@ -4,6 +4,7 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Dict, List, Optional
+from .transactions import get_exchange_rate
 
 from backend.schema import Group, GroupMember, User
 from app.deps import get_db, get_current_user
@@ -194,18 +195,32 @@ def get_current_dues(
     dues = {(membership.user_id) : Decimal("0.00") for membership in group.members if membership.user_id != current_user.id} # type: ignore
 
     for transaction in group.transactions: # type: ignore
+        #TODO if there is a rate, then multiply all cents with rate
         # is the payer, then add all the values
+        multiplier = Decimal(1)
+        if transaction.exchange_rate_to_group is not None and (transaction.currency != group.base_currency): # type: ignore
+            multiplier = Decimal(str(transaction.exchange_rate_to_group))
+
+        elif transaction.exchange_rate_to_group is None and (transaction.currency != group.base_currency): # type: ignore
+            # this means the exhcange rate issue was deferred since there was some issue when creating
+            multiplier = Decimal(str(get_exchange_rate(transaction_currency=transaction.currency, group_currency=group.base_currency))) # type: ignore
+        
+        if multiplier is None:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Exchange rate failure")
+        
         if transaction.payer_id == current_user.id:
             for split in transaction.splits:
-                assert split.user_id != current_user.id
-                dues[split.user_id] += split.amount_cents
+                if split.user_id == current_user.id:
+                    raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid split; contains self")
+                dues[split.user_id] += split.amount_cents * multiplier
         
         # not the payer, see if they are in the splits
         else:
             for split in transaction.splits:
                 # if the user is in the split
                 if split.user_id == current_user.id:
-                    dues[transaction.payer_id] -= split.amount_cents
+                    dues[transaction.payer_id] -= split.amount_cents * multiplier
+                    break
 
     return GroupDuesOut(
         dues=dues

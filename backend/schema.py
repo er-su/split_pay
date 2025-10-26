@@ -131,7 +131,7 @@ class Transaction(Base):
 
     # store amounts in integer "cents" to avoid floating point problems
     total_amount_cents: Mapped[Decimal] = mapped_column(Numeric(precision=18, scale=6), nullable=False)
-    currency: Mapped[Optional[str]] = mapped_column(String(3), nullable=True, server_default="USD") 
+    currency: Mapped[str] = mapped_column(String(3), nullable=True, server_default="USD") 
     exchange_rate_to_group: Mapped[Optional[float]] = mapped_column(nullable=True)
 
     group: Mapped["Group"] = relationship("Group", back_populates="transactions")
