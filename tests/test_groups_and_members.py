@@ -273,7 +273,7 @@ def test_edit_group_info(client, db_session):
     payload = {
         "name": "new edited name",
         "description": "new edited description",
-        "base_currency": "NTD"
+        "base_currency": "TWD"
     }
 
     resp = client.put("groups/1", json=payload)
@@ -283,7 +283,7 @@ def test_edit_group_info(client, db_session):
     assert changed_name_group.status_code < 300
     assert(resp.json()["name"] == "new edited name")
     assert(resp.json()["description"] == "new edited description")
-    assert(resp.json()["base_currency"] == "NTD")
+    assert(resp.json()["base_currency"] == "TWD")
 
 def test_archive_unarchive_system(client, db_session):
     user1 = create_user(db_session, "test@test.com",  "tester1")

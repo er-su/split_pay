@@ -1,5 +1,6 @@
 # app/routers/groups.py
 from datetime import datetime, timezone
+from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Dict, List, Optional
@@ -190,22 +191,25 @@ def get_current_dues(
     _require_member(db, group_id, current_user.id)
     _require_active_group(group, True)
 
-    dues = GroupDuesOut(group, current_user.id) # type: ignore
+    dues = {(membership.user_id) : Decimal("0.00") for membership in group.members if membership.user_id != current_user.id} # type: ignore
+
     for transaction in group.transactions: # type: ignore
         # is the payer, then add all the values
         if transaction.payer_id == current_user.id:
             for split in transaction.splits:
                 assert split.user_id != current_user.id
-                dues.dues[split.user_id] += split.amount_cents
+                dues[split.user_id] += split.amount_cents
         
         # not the payer, see if they are in the splits
         else:
             for split in transaction.splits:
                 # if the user is in the split
                 if split.user_id == current_user.id:
-                    dues.dues[transaction.payer_id] -= split.amount_cents
+                    dues[transaction.payer_id] -= split.amount_cents
 
-    return dues
+    return GroupDuesOut(
+        dues=dues
+    )
 
 # Member stuff
 @router.post("/groups/{group_id}/members", response_model=MemberOut, tags=["members"])

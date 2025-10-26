@@ -64,7 +64,7 @@ class Group(Base):
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # base currency
-    base_currency: Mapped[str] = mapped_column(String(8), nullable=False, server_default="USD")
+    base_currency: Mapped[str] = mapped_column(String(3), nullable=False, server_default="USD")
 
     # optional location fields (keep simple)
     location_name: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
@@ -117,7 +117,6 @@ class GroupMember(Base):
 class Transaction(Base):
     """
     Represents a single split bill inside a group.
-    Amounts are stored as integer cents (or smallest currency unit) to avoid float problems.
     """
     __tablename__ = "transactions"
 
@@ -132,7 +131,7 @@ class Transaction(Base):
 
     # store amounts in integer "cents" to avoid floating point problems
     total_amount_cents: Mapped[Decimal] = mapped_column(Numeric(precision=18, scale=6), nullable=False)
-    currency: Mapped[Optional[str]] = mapped_column(String(8), nullable=True, server_default="USD") 
+    currency: Mapped[Optional[str]] = mapped_column(String(3), nullable=True, server_default="USD") 
     exchange_rate_to_group: Mapped[Optional[float]] = mapped_column(nullable=True)
 
     group: Mapped["Group"] = relationship("Group", back_populates="transactions")

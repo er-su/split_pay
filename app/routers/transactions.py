@@ -1,6 +1,7 @@
 # app/routers/transactions.py
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, status, FastAPI
+from decimal import Decimal, ROUND_HALF_UP
+from fastapi import APIRouter, Depends, HTTPException, Query, status, FastAPI
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from typing import List, Optional, Set
@@ -15,23 +16,27 @@ from app.schema import (
     TransactionOut
 )
 
+TWO_PLACES = Decimal(10) ** -2
 router = APIRouter(tags=["transactions"])
 
-def _verify_splits(payload: CreateTransactionIn | UpdateTransactionIn, user_ids_in_group: Set[int], current_user_id: int):
+def _verify_splits(payload: CreateTransactionIn | UpdateTransactionIn, user_ids_in_group: Set[int], payer_id: int):
     if payload.splits is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid split sums")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Must provide splits")
 
-    total_split_sum = 0
+    total_split_sum = Decimal()
     for split in payload.splits:
-        if split.user_id not in user_ids_in_group or split.user_id == current_user_id:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid split sums")
+        if split.user_id not in user_ids_in_group or split.user_id == payer_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid split users")
         total_split_sum += split.amount_cents
+        
+        # remove to check for duplicate user ids in splits
+        user_ids_in_group.remove(split.user_id)
 
     # Ensure splits add up or account for rounding error (ignore pylance error as we verify that they are not None before passing into function)
-    if not((total_split_sum  == payload.total_amount_cents) or (total_split_sum > (payload.total_amount_cents - len(payload.splits)) and total_split_sum <= payload.total_amount_cents)): # type: ignore
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid split sums")
+    if (total_split_sum.quantize(TWO_PLACES, rounding=ROUND_HALF_UP) != payload.total_amount_cents): # type: ignore
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid split sums {total_split_sum} != {payload.total_amount_cents}")
     
-def _verify_update_splits(old_transaction: Transaction, payload: UpdateTransactionIn, user_ids_in_group: Set[int], current_user_id: int):
+def _verify_update_splits(old_transaction: Transaction, payload: UpdateTransactionIn, user_ids_in_group: Set[int], payer_id: int):
     # if splits and total are not updated, then everything should be fine
     if payload.splits is None and payload.total_amount_cents is None:
         return None
@@ -41,17 +46,17 @@ def _verify_update_splits(old_transaction: Transaction, payload: UpdateTransacti
     # if both were updated
     if payload.total_amount_cents is not None and payload.splits is not None:
         # verify as normal
-        _verify_splits(payload, user_ids_in_group, current_user_id)
+        _verify_splits(payload, user_ids_in_group, payer_id)
 
     elif payload.total_amount_cents is None:
         # we verify as normal by assuming that the old value is inserted
         payload.total_amount_cents = old_transaction.total_amount_cents
-        _verify_splits(payload, user_ids_in_group, current_user_id)
+        _verify_splits(payload, user_ids_in_group, payer_id)
 
     # if the splits are unchanged do the same
     else:
         payload.splits = [SplitIn.model_validate(split) for split in old_transaction.splits]
-        _verify_splits(payload, user_ids_in_group, current_user_id)
+        _verify_splits(payload, user_ids_in_group, payer_id)
 
 def _get_all_users_in_group(db: Session, group_id: int, exclude_deleted:bool = False) -> Set[int]:
     if exclude_deleted:
@@ -105,6 +110,7 @@ def create_transaction(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    #TODO automatically add the current exchange rate if not provided via api
     """
     Create a transaction. Returns 403 if not a member or if the group is archived
     Returns a 404 if the group is marked for deletion or does not exist
@@ -115,7 +121,7 @@ def create_transaction(
     _require_active_group(group, True)
 
     group_user_ids = _get_all_users_in_group(db, group_id, True)
-    _verify_splits(payload, group_user_ids, current_user.id)
+    _verify_splits(payload, group_user_ids, payload.payer_id)
 
     splits = [Split(
         user_id=split.user_id, 
@@ -142,6 +148,39 @@ def create_transaction(
     db.commit()
     db.refresh(t)
     return t
+
+@router.get("/groups/{group_id}/transactions", response_model=List[TransactionOut])
+def get_all_transactions(
+    group_id: int,
+    start_date: Optional[datetime] = Query(None, description="Filter transactions created after this date"),
+    end_date: Optional[datetime] = Query(None, description="Filter transactions created before this date"),
+    payer_id: Optional[int] = Query(None),
+    creator_id: Optional[int] = Query(None),
+    limit: int = Query(10, ge=1, le=200, description="Limit number of results (default 50)"),
+    offset: int = Query(0, ge=0, description="Pagination offset"),
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    group = db.get(Group, group_id)
+    _require_member(db, group_id, current_user.id)
+    _require_active_group(group, False)
+    stmt = select(Transaction).where(Transaction.group_id == group_id)
+
+    # Optional filters
+    if start_date:
+        stmt = stmt.where(Transaction.created_at >= start_date)
+    if end_date:
+        stmt = stmt.where(Transaction.created_at <= end_date)
+    if payer_id:
+        stmt = stmt.where(Transaction.payer_id == payer_id)
+    if creator_id:
+        stmt = stmt.where(Transaction.creator_id == creator_id)
+    stmt = stmt.order_by(Transaction.created_at.desc()).limit(limit).offset(offset)
+
+    result = db.scalars(stmt)
+    transactions = result.all()
+
+    return transactions
 
 # get specific transaction
 @router.get("/groups/{group_id}/transactions/{transaction_id}", response_model=TransactionOut)
@@ -183,16 +222,17 @@ def update_transaction(
 
     if transaction is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Transaction not found")
-    
-    group_user_ids = _get_all_users_in_group(db, group_id, False)
-    _verify_update_splits(transaction, payload, group_user_ids, current_user.id)
-    if transaction is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Transaction not found")
-    
+  
     group = transaction.group
     membership = _require_member(db, group_id, current_user.id)
     _require_active_group(group, True)
 
+  
+    group_user_ids = _get_all_users_in_group(db, group_id, False)
+    _verify_update_splits(transaction, payload, group_user_ids, payload.payer_id or transaction.payer_id)
+    if transaction is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Transaction not found")
+    
     if membership.is_admin is False and transaction.creator_id != current_user.id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Must be admin or creator")
     
@@ -232,4 +272,5 @@ def delete_transaction(
 
 @router.get("/groups/{group_id}/transactions/{transaction_id}/splits/{split_id}")
 def get_split():
+    #TODO implement individual split info (etc)
     pass

@@ -20,7 +20,7 @@ class CreateUserIn(BaseModel):
     Expected input fields for user creation
     """
     email: EmailStr
-    display_name: Optional[str] = "No Name User"
+    display_name: Optional[str] = None
     google_sub: str
 
 class EditUserIn(BaseModel):
@@ -64,16 +64,8 @@ class UpdateGroupIn(CreateGroupIn):
     base_currency: Optional[str] = None
 
 OtherUserId = Annotated[int, Field(description="The other user owes the current user")]
-Amount = Annotated[Decimal, Field(description="The amount they owe")]
 class GroupDuesOut(BaseModel):
-    dues: Dict[OtherUserId, Amount]
-
-    def __init__(self, group: Group, self_id: int):
-        """
-        In general, the number of dues == number of users in a group - 1 (self)
-        """
-
-        self.dues = {(membership.user_id) : Decimal("0.00") for membership in group.members if membership.user_id != self_id}
+    dues: Dict[OtherUserId, Decimal]
 
 # Member in/out
 class CreateMemberIn(BaseModel):
@@ -139,6 +131,7 @@ class UpdateTransactionIn(BaseModel):
     """
     title: Optional[Annotated[str, Field(max_length=300)]] = None
     memo: Optional[str] = None
+    payer_id: Optional[int] = None
     total_amount_cents: Annotated[Optional[Decimal], Field(ge=0)] = None
     splits: Optional[List[SplitIn]] = None
 

@@ -93,7 +93,7 @@ def create_user(
     # already exists but deleted their account, repurpose
     if result is not None and result.deleted_at is not None:
         result.email = payload.email
-        result.display_name = payload.display_name
+        result.display_name = payload.display_name or payload.email
         result.is_active = True
         db.commit()
         db.refresh(result)
@@ -106,7 +106,7 @@ def create_user(
     # else create a new user
     u = User(
         email=payload.email,
-        display_name=payload.display_name or "No Name User",
+        display_name=payload.display_name or payload.email,
         google_sub=payload.google_sub
     )
 
@@ -124,11 +124,11 @@ def delete_user(
     """
     Deletes self. Returns 404 if already marked for deletion
     """
-    if current_user.deleted_at is None:
+    if current_user.deleted_at is not None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User has been deleted")
 
     current_user.anonymize()
-
+    db.commit()
     db.refresh(current_user)
 
 @router.put("/me", response_model=UserOut)

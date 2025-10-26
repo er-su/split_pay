@@ -1,6 +1,7 @@
+from decimal import Decimal
 from fastapi.testclient import TestClient
 import pytest
-from backend.schema import User, GroupMember, Group, Transaction
+from backend.schema import User, GroupMember, Group, Transaction, Split
 from sqlalchemy.orm import Session
 from app.deps import get_current_user  # your auth dep
 from app.main import app
@@ -56,7 +57,7 @@ def create_group_and_users(db: Session, num_users: int) -> tuple[Group, list[Use
 
 @pytest.fixture
 def setup_env(client, db_session):
-    g, users, members = create_group_and_users(db_session, 3)
+    g, users, members = create_group_and_users(db_session, 4)
     return g, users, members
 
 
@@ -66,21 +67,21 @@ def test_create_transaction_as_member(client: TestClient, db_session: Session, s
 
     payload = {
         "payer_id": int(users[1].id),
-        "total_amount_cents": 6000,
+        "total_amount_cents": str(60.00),
         "exchange_rate_to_group": float(1.0),
         "currency": "USD",
         "title": "Dinner",
         "memo": "Testing",
         "splits": [
-            {"user_id": int(users[0].id), "amount_cents": 3000},
-            {"user_id": int(users[2].id), "amount_cents": 3000},
+            {"user_id": int(users[0].id), "amount_cents": str(30.00)},
+            {"user_id": int(users[2].id), "amount_cents": str(30.00)},
         ],
     }
 
     res = client.post(f"/groups/{group.id}/transactions", json=payload)
     assert res.status_code == 200
     data = res.json()
-    assert data["total_amount_cents"] == 6000
+    assert Decimal(data["total_amount_cents"]) == Decimal("60.00")
     assert len(data["splits"]) == 2
     assert data["payer_id"] == users[1].id
 
@@ -97,22 +98,22 @@ def test_create_transaction_non_member_forbidden(client, db_session, setup_env):
 
     payload = {
         "payer_id": users[0].id,
-        "total_amount_cents": 2000,
+        "total_amount_cents": (60.00),
         "currency": "USD",
-        "splits": [{"user_id": users[0].id, "amount_cents": 2000}],
+        "splits": [{"user_id": users[0].id, "amount_cents": (60.00)}],
     }
 
     res = client.post(f"/groups/{group.id}/transactions", json=payload)
     assert res.status_code == 403
 
 
-def test_create_transaction_invalid_splits_validation(client, db_session, setup_env):
+def test_create_transaction_empty_splits(client, db_session, setup_env):
     group, users, members = setup_env
     app.dependency_overrides[get_current_user] = get_current_user_override(users[0])
 
     payload = {
         "payer_id": users[0].id,
-        "total_amount_cents": 5000,
+        "total_amount_cents": "50.00",
         "currency": "USD",
         "splits": [],
     }
@@ -123,11 +124,79 @@ def test_create_transaction_invalid_splits_validation(client, db_session, setup_
 
     # now test if the sum doesnt sum up
     
+def test_create_transaction_nonsumming_splits(client: TestClient, db_session: Session, setup_env):
+    _, users, _ = setup_env
+    app.dependency_overrides[get_current_user] = get_current_user_override(users[0])
+
+    payload = {
+        "payer_id": users[0].id,
+        "total_amount_cents": "50.00",
+        "currency": "USD",
+        "splits": [
+            {"user_id": users[1].id, "amount_cents": "25.00"},
+            {"user_id": users[2].id, "amount_cents": "25.01"}
+        ],
+    }
+
+    res = client.post(f"/groups/1/transactions", json=payload)
+    assert res.status_code == 400
+
+def test_transaction_rounding_issues(client: TestClient, db_session: Session, setup_env):
+    _, users, _ = setup_env
+    app.dependency_overrides[get_current_user] = get_current_user_override(users[0])
+
+    amount = Decimal("10.00")
+    per_user = amount / Decimal("3")
+
+    payload = {
+        "payer_id": users[0].id,
+        "total_amount_cents": str(amount),
+        "currency": "USD",
+        "splits": [
+            {"user_id": users[1].id, "amount_cents": str(per_user)},
+            {"user_id": users[2].id, "amount_cents": str(per_user)},
+            {"user_id": users[3].id, "amount_cents": str(per_user)}
+        ],
+    }
+
+    res = client.post(f"/groups/1/transactions", json=payload)
+    assert(res.status_code == 200)
+    
+def test_create_transaction_with_non_member_split(client: TestClient, db_session: Session, setup_env):
+    _, users, _ = setup_env
+    app.dependency_overrides[get_current_user] = get_current_user_override(users[0])
+
+    payload = {
+        "payer_id": users[0].id,
+        "total_amount_cents": "50.00",
+        "currency": "USD",
+        "splits": [
+            {"user_id": users[1].id, "amount_cents": "25.00"},
+            {"user_id": 1000, "amount_cents": "25.00"}
+        ],
+    }
+
+    res = client.post(f"/groups/1/transactions", json=payload)
+    assert res.status_code == 400
+
+def test_create_transaction_with_self_member_split(client: TestClient, db_session: Session, setup_env):
+    _, users, _ = setup_env
+    app.dependency_overrides[get_current_user] = get_current_user_override(users[0])
+
+    payload = {
+        "payer_id": users[0].id,
+        "total_amount_cents": "50.00",
+        "currency": "USD",
+        "splits": [
+            {"user_id": users[1].id, "amount_cents": "25.00"},
+            {"user_id": users[0].id, "amount_cents": "25.00"}
+        ],
+    }
+
+    res = client.post(f"/groups/1/transactions", json=payload)
+    assert res.status_code == 400
 
 
-# ----------------------------------------------------------
-# Transaction Retrieval
-# ----------------------------------------------------------
 def test_get_transaction_success(client, db_session, setup_env):
     group, users, members = setup_env
     app.dependency_overrides[get_current_user] = get_current_user_override(users[1])
@@ -158,9 +227,6 @@ def test_get_transaction_not_found(client, db_session, setup_env):
     assert res.status_code == 404
 
 
-# ----------------------------------------------------------
-# Transaction Update
-# ----------------------------------------------------------
 def test_update_transaction_by_creator(client, db_session, setup_env):
     group, users, _ = setup_env
     creator = users[1]
@@ -206,10 +272,7 @@ def test_update_transaction_forbidden_for_non_creator(client, db_session, setup_
     res = client.put(f"/groups/{group.id}/transactions/{tx.id}", json={"title": "Hack attempt"})
     assert res.status_code == 403
 
-# ----------------------------------------------------------
-# Transaction Deletion
-# ----------------------------------------------------------
-def test_delete_transaction_by_admin(client, db_session, setup_env):
+def test_delete_transaction_by_admin(client: TestClient, db_session: Session, setup_env):
     group, users, members = setup_env
     admin = users[0]
     app.dependency_overrides[get_current_user] = get_current_user_override(admin)
@@ -218,10 +281,11 @@ def test_delete_transaction_by_admin(client, db_session, setup_env):
         group_id=group.id,
         creator_id=users[1].id,
         payer_id=users[1].id,
-        total_amount_cents=2500,
+        total_amount_cents="60.00",
         currency="USD",
-        splits=[
-            {}
+        splits = [
+            Split(user_id = users[0].id, amount_cents = "30.00"),
+            Split(user_id = users[2].id, amount_cents = "30.00"),
         ]
     )
     db_session.add(tx)
@@ -255,21 +319,58 @@ def test_transaction_splits_dues(client: TestClient, db_session: Session, setup_
     group, users, _ = setup_env
     app.dependency_overrides[get_current_user] = get_current_user_override(users[0])
 
-    # user 1 and 2 owes user 0 3000 cents
+    # user 1 and 2 owes user 0 30 dollar
     payload = {
         "payer_id": int(users[0].id),
-        "total_amount_cents": 6000,
+        "total_amount_cents": "60.00",
         "exchange_rate_to_group": float(1.0),
         "currency": "USD",
         "title": "Dinner",
         "memo": "Testing",
         "splits": [
-            {"user_id": int(users[1].id), "amount_cents": 3000},
-            {"user_id": int(users[2].id), "amount_cents": 3000},
+            {"user_id": int(users[1].id), "amount_cents": "30.00"},
+            {"user_id": int(users[2].id), "amount_cents": "30.00"},
         ],
     }
     
     resp = client.post("/groups/1/transactions", json=payload)
     assert resp.status_code == 200
 
-    
+    # user 1 owes user 0 -270 and user 2 owes user 0 30
+    payload2  = {
+        "payer_id": int(users[1].id),
+        "total_amount_cents": "600.00",
+        "exchange_rate_to_group": float(1.0),
+        "currency": "USD",
+        "title": "Dinner",
+        "memo": "Testing",
+        "splits": [
+            {"user_id": int(users[0].id), "amount_cents": "300.00"},
+            {"user_id": int(users[2].id), "amount_cents": "300.00"},
+        ],
+    }
+
+    resp = client.post("/groups/1/transactions", json=payload2)
+    assert resp.status_code == 200
+
+    # user 1 owes user 0 -270 and user 2 owes user 0 0 dollars
+    payload3  = {
+        "payer_id": int(users[2].id),
+        "total_amount_cents": "60.00",
+        "exchange_rate_to_group": float(1.0),
+        "currency": "USD",
+        "title": "Dinner",
+        "memo": "Testing",
+        "splits": [
+            {"user_id": int(users[0].id), "amount_cents": "30.00"},
+            {"user_id": int(users[1].id), "amount_cents": "30.00"},
+        ],
+    }
+
+    resp = client.post("/groups/1/transactions", json=payload3)
+    assert resp.status_code == 200
+
+    resp = client.get("/groups/1/dues")
+    assert resp.status_code == 200
+    assert Decimal(resp.json()["dues"]["2"]) == -270
+    assert Decimal(resp.json()["dues"]["3"]) == 0

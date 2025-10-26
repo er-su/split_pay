@@ -8,7 +8,7 @@ from app.auth.oauth import build_google_auth_url, exchange_code_for_tokens, veri
 from app.auth.jwt_util import create_access_token
 from backend.schema import User
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 COOKIE_NAME = "access_token"
 COOKIE_MAX_AGE = 3600  # 1 hour in seconds; should match JWT_TTL_SECONDS
@@ -48,7 +48,7 @@ def google_callback(code: str, response: Response, db: Session = Depends(get_db)
     google_sub = claims.get("sub")
     email = claims.get("email")
     name = claims.get("name")
-    picture = claims.get("picture")
+    #picture = claims.get("picture")
 
     if not google_sub or not email:
         raise HTTPException(status_code=400, detail="Google token missing required claims")
@@ -60,7 +60,7 @@ def google_callback(code: str, response: Response, db: Session = Depends(get_db)
             google_sub=google_sub,
             email=email,
             display_name=name or email,
-            profile_pic=picture
+            #profile_pic=picture
         )
         db.add(user)
         db.commit()
@@ -82,15 +82,6 @@ def google_callback(code: str, response: Response, db: Session = Depends(get_db)
 
     # Return a minimal JSON with user info (frontend might not read cookie directly)
     return {"user": {"id": user.id, "email": user.email, "display_name": user.display_name}}
-
-@router.get("/me")
-def me(current_user = Depends(lambda: None)):
-    """
-    Placeholder: the real dependency will be injected by app.deps.get_current_user.
-    This function is included so that you can inspect the endpoint behavior.
-    In main.py the app will use get_current_user as the Depends on endpoints that need auth.
-    """
-    return {"msg": "implement me"}
 
 @router.post("/logout")
 def logout(response: Response):
