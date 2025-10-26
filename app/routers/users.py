@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, FastAPI
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import exists, select
+from sqlalchemy import exists, select, update
 from typing import List, Optional
 
 from backend.schema import Transaction, User, Split, Group, GroupMember
@@ -57,6 +57,19 @@ def get_me(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User has been deleted")
     
     return current_user
+
+@router.get("users/{user_id}", response_model=UserOut)
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    get_current_user: User = Depends(get_current_user)
+):
+    
+    user = db.get(User, user_id)
+    if user is None or user.is_deleted():
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+    
+    return user
 
 @router.get("/me/groups", response_model=List[GroupOut])
 def get_my_groups(
@@ -128,6 +141,15 @@ def delete_user(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User has been deleted")
 
     current_user.anonymize()
+
+    current_time = datetime.now(timezone.utc)
+    stmt = (
+        update(GroupMember)
+        .where(GroupMember.user_id == current_user.id)
+        .values(left_at=current_time, is_admin=False)
+        .execution_options(synchronize_session=False)
+    )
+    db.execute(stmt)
     db.commit()
     db.refresh(current_user)
 

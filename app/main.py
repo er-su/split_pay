@@ -22,7 +22,3 @@ app.add_middleware(
 )
 
 Base.metadata.create_all(bind=engine)
-
-@app.get("/")
-async def root():
-    return {"message": "Hello Bigger Applications!"}

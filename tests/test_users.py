@@ -153,3 +153,51 @@ def test_getting_groups(client: TestClient, db_session: Session):
     assert resp.status_code == 200
     assert len(resp.json()) == 2
     assert resp.json()[1]["name"] == payload["name"]
+
+def test_deletion_while_in_transaction(client: TestClient, db_session: Session):
+    group, users, members = create_group_and_users(db_session, 2)
+    app.dependency_overrides[get_current_user] = get_current_user_override(users[0])
+
+    #create a transaction invloving user 1
+    payload = {
+        "payer_id": users[0].id,
+        "title": "Dinner with user 1",
+        "total_amount_cents": "25.00",
+        "currency": "USD",
+        "splits": [
+            {"user_id": users[1].id, "amount_cents": "25.00", "note": "user 1 is fat"},
+        ],
+    }
+
+    resp = client.post("/groups/1/transactions", json=payload)
+    assert resp.status_code == 200
+
+    resp = client.get("/groups/1/transactions")
+    assert resp.status_code == 200
+    assert len(resp := resp.json()) == 1
+
+    resp = client.get("/groups/1/members")
+    assert resp.status_code == 200
+    assert len(resp.json()) == 2
+
+    # now delete user 1
+    app.dependency_overrides[get_current_user] = get_current_user_override(users[1])
+    resp = client.delete("/me")
+    assert resp.status_code == 204
+
+    #inspect group and stuff note that normally, deleted people cant access due to the check in get_current_user
+    # but this fails since we are overriding the thing
+    app.dependency_overrides[get_current_user] = get_current_user_override(users[0])
+    resp = client.get("/groups/1/transactions/1")
+    assert resp.status_code == 200
+
+    resp = client.get("/groups/1/members")
+    assert resp.status_code == 200
+    assert len(resp.json()) == 1
+
+    resp = client.get("/groups/1/all-members")
+    assert resp.status_code == 200
+    assert len(resp.json()) == 2
+    
+    resp = client.get("/users/1")
+    assert resp.status_code == 404

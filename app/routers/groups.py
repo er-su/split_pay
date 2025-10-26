@@ -181,7 +181,7 @@ def soft_delete_group(
     db.commit()
     return None
 
-@router.get("/groups/{group_id}/dues", response_model=GroupDuesOut)
+@router.get("/groups/{group_id}/dues", response_model=GroupDuesOut, tags=["groups"])
 def get_current_dues(
     group_id: int, 
     db: Session = Depends(get_db), 
