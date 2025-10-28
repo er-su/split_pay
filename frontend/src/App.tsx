@@ -2,9 +2,19 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-
+import { useEffect } from "react";
+import  getMe  from "./components/user"; // import your function
+import  GoogleAuthButton  from "./components/googleauthbutton";
 function App() {
-  const [count, setCount] = useState(0)
+  //  useEffect(() => {
+  //   // getMe()
+  //   //   .then(data => console.log("Groups:", data))
+  //   //   .catch(err => console.error(err));
+  // }, []); // <-- Empty deps = runs once when app loads
+  const handleCheckAuth = async () => {
+    const data = await getMe();
+    console.log("Result from getMe:", data);
+  };
 
   return (
     <>
@@ -18,9 +28,13 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
+        {/* <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
-        </button>
+        </button> */}
+        <GoogleAuthButton />
+        <button onClick={handleCheckAuth}>
+        Get My Account Info
+       </button>
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
         </p>
