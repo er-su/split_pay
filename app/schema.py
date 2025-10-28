@@ -110,7 +110,7 @@ class CreateTransactionIn(BaseModel):
     """
     payer_id: int
     total_amount_cents: Decimal
-    currency: Currency = "USD" # type: ignore
+    currency: Currency
     exchange_rate_to_group: Optional[float] = None
     title: Optional[Annotated[str, Field(max_length=300)]] = None
     memo: Optional[str] = None

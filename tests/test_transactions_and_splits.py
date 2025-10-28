@@ -374,3 +374,29 @@ def test_transaction_splits_dues(client: TestClient, db_session: Session, setup_
     assert resp.status_code == 200
     assert Decimal(resp.json()["dues"]["2"]) == -270
     assert Decimal(resp.json()["dues"]["3"]) == 0
+
+def test_transaction_exchange(client: TestClient, db_session: Session, setup_env):
+    group, users, _ = setup_env
+    app.dependency_overrides[get_current_user] = get_current_user_override(users[0])
+
+    payload = {
+        "payer_id": int(users[0].id),
+        "total_amount_cents": "60.00",
+        "exchange_rate_to_group": float(2.0),
+        "currency": "USD",
+        "title": "Dinner",
+        "memo": "Testing",
+        "splits": [
+            {"user_id": int(users[1].id), "amount_cents": "30.00"},
+            {"user_id": int(users[2].id), "amount_cents": "30.00"},
+        ],
+    }
+    
+    resp = client.post("/groups/1/transactions", json=payload)
+    assert resp.status_code == 200
+    assert resp.json()["exchange_rate_to_group"] != None
+
+    resp = client.get("/groups/1/dues")
+    assert resp.status_code == 200
+    # should double
+    assert Decimal(resp.json()["dues"]["2"]) == Decimal("60.00")

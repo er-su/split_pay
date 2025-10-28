@@ -5,6 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status, FastAPI
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from typing import List, Optional, Set
+from pathlib import Path
+import requests
+import json
+import os
 
 from backend.schema import Transaction, User, Split, Group, GroupMember
 from app.deps import get_db, get_current_user
@@ -18,6 +22,66 @@ from app.schema import (
 
 TWO_PLACES = Decimal(10) ** -2
 router = APIRouter(tags=["transactions"])
+
+def get_exchange_rate(transaction_currency: str, group_currency: str):
+    if transaction_currency == group_currency:
+        return None
+    
+    # first check if the exchange has already been cached, note that exchange rate goes both ways so either
+    # currency will be fine
+    trans_path = Path(f"../exchange_cache/{transaction_currency}.json")
+    group_path = Path(f"../exchange_cache/{group_currency}.json")
+
+    if trans_path.exists():
+        with open(trans_path, "r") as f:
+            exchange_data = json.load(f)
+
+        now = int(datetime.now(timezone.utc).timestamp())
+
+        # if its still valid
+        if int(exchange_data["time_next_update_unix"]) > now:
+            return float(exchange_data["rates"][group_currency])
+        
+        # else move onto the group path instead
+
+    if group_path.exists():
+        with open(group_path, "r") as f:
+            exchange_data = json.load(f)
+
+        now = int(datetime.now(timezone.utc).timestamp())
+
+        # if its still valid
+        if int(exchange_data["time_next_update_unix"]) > now:
+            return (1.0 / float(exchange_data["rates"][group_currency]))
+        
+    os.makedirs(os.path.dirname(trans_path), exist_ok=True)
+    # making
+    trans_resp = requests.get(f"https://open.er-api.com/v6/latest/{transaction_currency}")
+    if trans_resp.status_code == 200:
+        # save the resp
+        transaction_data = trans_resp.json()
+        assert transaction_data["result"] == "success"
+
+        with open(trans_path, "w") as f:
+            json.dump(transaction_data, f, ensure_ascii=False, indent=4)
+        
+        return float(transaction_data["rates"][group_currency]) 
+    
+    # try the other one if this fails too
+
+    group_resp = requests.get(f"https://open.er-api.com/v6/latest/{transaction_currency}")
+    if group_resp.status_code == 200:
+        # save the resp
+        group_data = group_resp.json()
+        assert group_data["result"] == "success"
+
+        with open(group_path, "w") as f:
+            json.dump(group_data, f, ensure_ascii=False, indent=4)
+        
+        return (1.0 / float(group_data["rates"][group_currency]))
+    
+    # unable to request, defer to a different time
+    return None
 
 def _verify_splits(payload: CreateTransactionIn | UpdateTransactionIn, user_ids_in_group: Set[int], payer_id: int):
     if payload.splits is None:
@@ -123,6 +187,10 @@ def create_transaction(
     group_user_ids = _get_all_users_in_group(db, group_id, True)
     _verify_splits(payload, group_user_ids, payload.payer_id)
 
+    # get transaction rate
+    if group.base_currency != payload.currency and payload.exchange_rate_to_group is None: # type: ignore
+        exchange_rate = get_exchange_rate(payload.currency, group.base_currency) # type: ignore
+
     splits = [Split(
         user_id=split.user_id, 
         amount_cents=split.amount_cents, 
@@ -139,7 +207,7 @@ def create_transaction(
 
         total_amount_cents = payload.total_amount_cents,
         currency = payload.currency,
-        exchange_rate_to_group = payload.exchange_rate_to_group,
+        exchange_rate_to_group = payload.exchange_rate_to_group or exchange_rate,
 
         splits = splits
     )
