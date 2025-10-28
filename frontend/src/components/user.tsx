@@ -53,14 +53,4 @@ export default getMe;
 
 
 
-const getUsergroups=async(data:any)=>{
-try
-{
-    await api.get('/groups/',{data})
-}
-catch(Error)
-{
-    console.error("Error adding Group",Error)
-}
-}
 
