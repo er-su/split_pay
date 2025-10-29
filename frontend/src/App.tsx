@@ -16,6 +16,10 @@ function App() {
   const navigate = useNavigate();
 
   const Gotogrouppages = () => {
+    navigate("/Grouppages");
+  };
+
+  const AddGroupForm = () => {
     navigate("/Groupform");
   };
   const handleCheckAuth = async () => {
@@ -39,7 +43,8 @@ function App() {
         <button onClick={handleCheckAuth}>
         Get My Account Info
        </button>
-       <button onClick={Gotogrouppages}>Create A group</button>
+       <button onClick={Gotogrouppages}>Gotogroups</button>
+       <button onClick={AddGroupForm}>Create A group</button>
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
         </p>
