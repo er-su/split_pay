@@ -1,15 +1,17 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
-import{   createBrowserRouter, RouterProvider ,BrowserRouter, Routes, Route } from 'react-router-dom'
+import{   createBrowserRouter, RouterProvider  } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 import AuthCallback from "./pages/AuthCallback";
-
+import GroupForm from './components/Groupform.tsx'
 
 const router = createBrowserRouter([
   { path: "/", element: <App /> },
-  { path: "/auth/callback", element: <AuthCallback /> },
+  { path: "/auth/callback", element: <AuthCallback />}, 
+   { path: "/Groupform/",element:<GroupForm/>
+  },
 ]);
 
 createRoot(document.getElementById('root')!).render(
