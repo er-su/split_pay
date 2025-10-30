@@ -1,4 +1,4 @@
-import type { Group, Transaction, User } from "../types/api";
+import type { Group, Transaction, User } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 const OAUTH_URL = import.meta.env.VITE_OAUTH_URL ?? "/placeholder_for_now"; // update later 
@@ -19,8 +19,23 @@ function buildUrl(path: string, query?: Record<string, any>) {
 }
 
 async function handle401Redirect() {
-	// Handle the 401 redirect to the OAUTH_URL
-  window.location.href = OAUTH_URL;
+  try {
+    // Ask backend for the actual Google login URL
+    const res = await fetch(`${API_BASE}/auth/google/login`, {
+      credentials: "include",
+    });
+    const data = await res.json();
+
+    if (data?.auth_url) {
+      window.location.href = data.auth_url;
+      return;
+    }
+  } catch (err) {
+    console.error("Failed to fetch login URL:", err);
+  }
+
+  // fallback (if something went wrong)
+  window.location.href = `${API_BASE}/auth/google/login`;
 }
 
 export async function apiFetch<T = any>(path: string, opts: FetchOptions = {}): Promise<T> {
