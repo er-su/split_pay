@@ -1,5 +1,5 @@
 from typing import Dict, List, Optional, Annotated
-from pydantic import BaseModel, Field, EmailStr, field_validator, ConfigDict
+from pydantic import AnyHttpUrl, BaseModel, Field, EmailStr, field_validator, ConfigDict
 from datetime import datetime
 from pydantic_extra_types.currency_code import Currency
 from decimal import Decimal
@@ -92,6 +92,7 @@ class SplitIn(BaseModel):
 class SplitOut(BaseModel):
     """Output representation for a split row."""
     user_id: int
+    user_display_name: str
     amount_cents: Annotated[Decimal, Field(ge=0)]
     note: Optional[str]
 
@@ -160,19 +161,22 @@ class TransactionOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 # Balances in/out
-class BalanceItem(BaseModel):
+#class BalanceItem(BaseModel):
     """Net owed amount between requester and another member.
     Positive -> other_user owes requester.
     Negative -> requester owes other_user.
     """
-    other_user_id: int
-    net_cents: int
+#    other_user_id: int
+#    net_cents: int
 
-class BalancesOut(BaseModel):
+#class BalancesOut(BaseModel):
     """Balances summary for a user within a group (returned by balances endpoint)."""
-    group_id: int
-    base_currency: str
-    user_id: int
-    balances: List[BalanceItem]
+#    group_id: int
+#    base_currency: str
+#    user_id: int
+#    balances: List[BalanceItem]
 
-    model_config = ConfigDict(from_attributes=True)
+#    model_config = ConfigDict(from_attributes=True)
+
+class InviteOut(BaseModel):
+    invite_link: AnyHttpUrl

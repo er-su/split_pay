@@ -2,7 +2,7 @@
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 from fastapi import APIRouter, Depends, HTTPException, Query, status, FastAPI
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select
 from typing import List, Optional, Set
 from pathlib import Path
@@ -232,7 +232,13 @@ def get_all_transactions(
     group = db.get(Group, group_id)
     _require_member(db, group_id, current_user.id)
     _require_active_group(group, False)
-    stmt = select(Transaction).where(Transaction.group_id == group_id)
+    stmt = (
+        select(Transaction)
+        .options(
+            joinedload(Transaction.splits).joinedload(Split.user)
+        )
+        .where(Transaction.group_id == group_id)
+    )
 
     # Optional filters
     if start_date:
@@ -245,7 +251,7 @@ def get_all_transactions(
         stmt = stmt.where(Transaction.creator_id == creator_id)
     stmt = stmt.order_by(Transaction.created_at.desc()).limit(limit).offset(offset)
 
-    result = db.scalars(stmt)
+    result = db.scalars(stmt).unique()
     transactions = result.all()
 
     return transactions
@@ -262,7 +268,14 @@ def get_transaction(
     Returns the transaction. Returns a 403 if the user is not part of the group,
     the group is marked for deletion. Returns a 404 if the group or transaction does not exist
     """
-    transaction = db.get(Transaction, transaction_id)
+    transaction = (
+        db.query(Transaction)
+        .options(
+            joinedload(Transaction.splits).joinedload(Split.user)
+        )
+        .filter(Transaction.id == transaction_id)
+        .first()
+    )
 
     if transaction is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Transaction not found")
@@ -286,8 +299,14 @@ def update_transaction(
     Edit the information within a transaction. Returns a 403 if user is an admin or the creator of the transcation
     Returns a 400 if the splits do not properly sum
     """
-    transaction = db.get(Transaction, transaction_id)
-
+    transaction = (
+        db.query(Transaction)
+        .options(
+            joinedload(Transaction.splits).joinedload(Split.user)
+        )
+        .filter(Transaction.id == transaction_id)
+        .first()
+    )
     if transaction is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Transaction not found")
   

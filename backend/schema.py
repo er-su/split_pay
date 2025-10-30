@@ -10,6 +10,8 @@ from sqlalchemy import (
 from sqlalchemy.orm import (
     DeclarativeBase, Mapped, mapped_column, relationship
 )
+from sqlalchemy.ext.hybrid import hybrid_property
+
 
 # --- Base ---
 class Base(DeclarativeBase):
@@ -158,6 +160,11 @@ class Split(Base):
 
     transaction: Mapped["Transaction"] = relationship("Transaction", back_populates="splits")
     user: Mapped["User"] = relationship("User")
+
+    @hybrid_property
+    def user_display_name(self) -> Optional[str]:
+        """Expose the display_name of the related user."""
+        return self.user.display_name if self.user else None
 
     __table_args__ = (
         Index("ux_transaction_user", "transaction_id", "user_id", unique=True),
