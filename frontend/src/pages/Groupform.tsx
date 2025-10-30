@@ -1,10 +1,14 @@
 import{ useState } from 'react';
-import api from '../api';
+import api from '../components/api';
 import Homepage from '../components/Navigatebacktoapp';
 
+import { useNavigate } from 'react-router-dom';
 
 const GroupForm = () => {
-
+const navigate = useNavigate();
+const handleGoBack = () => {
+    navigate("/"); // or navigate(-1)
+  };
   
   const [formData, setFormData] = useState({
     name: "",
@@ -84,10 +88,12 @@ const GroupForm = () => {
         value={formData.location_lon}
         onChange={handleChange}
       />
+            <button type="submit">Submit</button>
 
-
-      <button onClick={Homepage}>Submit and Go back to the Form</button>
-  
+      {/* Optional: separate button to go back without submitting */}
+      <button type="button" onClick={handleGoBack}>
+        Go back to the app
+      </button>
     </form>
   );
 };

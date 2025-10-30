@@ -3,17 +3,16 @@ import { createRoot } from 'react-dom/client'
 
 import{   createBrowserRouter, RouterProvider  } from 'react-router-dom'
 import './index.css'
-import App from './App.tsx'
-import AuthCallback from "./pages/AuthCallback";
+import App from './home/App.tsx'
+import AuthCallback from './pages/AuthCallback.tsx'
 import GroupForm from './pages/Groupform.tsx'
-import Grouppages from './pages/Grouppages.tsx'
-
+import Gotogrouppages from './pages/Grouppages.tsx'
 const router = createBrowserRouter([
   { path: "/", element: <App /> },
   { path: "/auth/callback", element: <AuthCallback />}, 
    { path: "/Groupform/",element:<GroupForm/>
   },
-  { path: "/Grouppages/",element:<Grouppages/>
+  { path: "/Grouppages/",element:<Gotogrouppages/>
   },
 ]);
 

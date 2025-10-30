@@ -1,9 +1,19 @@
+
+
+import './App.css'
+import { useNavigate } from "react-router-dom";
+import { useState } from 'react';
 import api from '../components/api';
-import { useEffect, useState } from 'react';
-import AuthCallback from './AuthCallback';
 import GoogleLogin from '../components/googleLogin';
-export default function Gotogrouppages() 
-{
+import { useEffect } from 'react';
+
+
+function App() {
+const navigate = useNavigate();
+const AddGroupForm = () => {
+     navigate("/Groupform");
+   };
+
   const [groups, Setgroups] = useState([]);
   const Getgroups = async () => {
     try {
@@ -38,18 +48,12 @@ export default function Gotogrouppages()
           <h3>{group.name} {group.base_currency}</h3>
         </div>
       ))}
+      <button onClick={AddGroupForm}>Create A group</button>
     </div>
+    
   );
-};
+ 
+ 
+}
 
-
-
-
-
-
-
-
-
-
-
-
+export default App

@@ -1,7 +1,8 @@
 // frontend/src/pages/AuthCallback.tsx
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import  api  from "../api";
+import  api  from "../components/api";
+import GoogleLogin from "../components/googleLogin";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ export default function AuthCallback() {
   useEffect(() => {
     (async () => {
       try {
+       
         // Cookie is HttpOnly; test by calling /api/auth/me
         const { data } = await api.get("/api/auth/me");
         console.log("Logged in as:", data.user);
