@@ -6,7 +6,7 @@ import { useState } from 'react';
 import api from '../components/api';
 import GoogleLogin from '../components/googleLogin';
 import { useEffect } from 'react';
-import groupTrans from "../group/groupTrans";
+
 
 function App() {
 const navigate = useNavigate();
@@ -86,11 +86,13 @@ const AddGroupForm = () => {
             ×
           </button>
 
-          {/* CARD CONTENT */}
-          <h3 style={{ marginTop: "10px" }}>
+          {/* Group Descrition */}
+          <h3 style={{ marginTop: "20px" }}>
             {group.name} : {group.base_currency}
           </h3>
 
+
+            {/* Group Transactions Page*/}
           <button
             onClick={() =>
               navigate("/GroupTransaction", { state: { groupId: group.id } })
@@ -107,51 +109,34 @@ const AddGroupForm = () => {
           >
             Go to Transactions
           </button>
+
+          <button
+            onClick={() => navigate("/GroupEditing", { state: { groupId: group.id } })}
+            style={{ 
+              position: "absolute",
+              top: "5px",
+              left: "8px",
+              background: "transparent",
+              border: "none",
+              color: "#888",
+              fontWeight: "bold",
+              cursor: "pointer",
+              fontSize: "18px",
+              lineHeight: "1",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "red")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}
+            title="Delete Group"
+          >
+            Editing
+          </button>
         </div>
       ))}
-      <button onClick={AddGroupForm}>Create A group</button>
+      <button onClick={AddGroupForm}> Create A group</button>
     </div>
   
     
-    // <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-    //   {groups.map((group: any) => (
-    //     <div 
-    //       key={group.id} 
-    //       style={{
-    //         border: "1px solid #ccc",
-    //         padding: "10px",
-    //         borderRadius: "8px",
-    //         width: "200px",
-    //         backgroundColor: "#f9f9f9",
-    //       }}
-    //     >
-
-    //       {/* ❌ delete button in top-right corner */}
-    //       <button
-    //         onClick={() => Deletegroups(group.id)}
-    //         style={{
-    //           position: "absolute",
-    //           top: "5px",
-    //           right: "8px",
-    //           background: "transparent",
-    //           border: "none",
-    //           color: "#888",
-    //           fontWeight: "bold",
-    //           cursor: "pointer",
-    //           fontSize: "16px",
-    //         }}
-    //         title="Delete Group"
-    //       >
-    //       </button>
-    //       <h3>{group.name} : {group.base_currency}</h3>
-    //       <button onClick={()=>navigate("/GroupTransaction", { state: { groupId:group.id } })}>Go to Transactions</button>
-    //       {/* <button onClick={()=>navigate(`/GroupTransaction/${group.id}`)}>Go to Transactions</button> */}
-        
-    //     </div>
-    //   ))}
-     
-    //   <button onClick={AddGroupForm}>Create A group</button>
-    // </div>
+   
     
   );
  

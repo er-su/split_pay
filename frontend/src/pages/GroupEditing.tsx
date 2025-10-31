@@ -1,10 +1,11 @@
 import{ useState } from 'react';
 import api from '../components/api';
-
-
 import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+const GroupEditing = () => {
 
-const GroupForm = () => {
+const location = useLocation();
+const groupid = location.state?.groupId;
 const navigate = useNavigate();
 const handleGoBack = () => {
     navigate("/"); // or navigate(-1)
@@ -31,7 +32,7 @@ const handleGoBack = () => {
     e.preventDefault();
     try {
       const response = await api.post(
-        "/groups", // replace with your API URL
+        `/groups/${groupid}`, // replace with your API URL
         formData,
         { headers: { "Content-Type": "application/json" } }
       );
@@ -98,18 +99,4 @@ const handleGoBack = () => {
   );
 };
 
-export default GroupForm;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export default GroupEditing;

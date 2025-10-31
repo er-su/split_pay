@@ -4,9 +4,9 @@ import { createRoot } from 'react-dom/client'
 import{   createBrowserRouter, RouterProvider  } from 'react-router-dom'
 import './index.css'
 import App from './home/App.tsx'
-import AuthCallback from './pages/authCallback.tsx'
-import GroupForm from './pages/groupForm.tsx'
-
+import AuthCallback from './pages/AuthCallback.tsx'
+import GroupForm from './pages/Groupform.tsx'
+import GroupEditing from './pages/Groupediting.tsx'
 import Grouptrans from './group/groupTrans.tsx'
 const router = createBrowserRouter([
   { path: "/", element: <App /> },
@@ -14,6 +14,8 @@ const router = createBrowserRouter([
    { path: "/Groupform/",element:<GroupForm/>
   },
   { path: "/GroupTransaction/",element:<Grouptrans/>
+  },
+  { path: "/GroupEditing/",element:<GroupEditing/>
   },
 ]);
 

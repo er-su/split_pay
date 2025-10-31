@@ -1,15 +1,21 @@
+import { useNavigate } from "react-router-dom";
+import { useState } from 'react';
 import api from '../components/api';
-import { useEffect, useState } from 'react';
-import AuthCallback from './AuthCallback';
 import GoogleLogin from '../components/googleLogin';
-export default function Gotogrouppages() 
-{
-  const [groups, Setgroups] = useState([]);
-  const Getgroups = async () => {
+import { useEffect } from 'react';
+import { useLocation } from "react-router-dom";
+
+export default function ListTransactions(groupid:any){
+
+
+
+    const [Transactions,setTransactions ] = useState([]);
+  const Gettransactions = async () => {
     try {
-      const res = await api.get('/me/groups');
+      const res = await api.get(`/groups/${groupid}/transactions`)
+
       console.log("User data:", res.data);
-      Setgroups(res.data);
+      setTransactions(res.data);
     } 
     catch (error: any) 
     {
@@ -19,14 +25,14 @@ export default function Gotogrouppages()
     }
     };
   useEffect(() => {
-    Getgroups();
+    Gettransactions();
   }, []);
 
    return (
     <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-      {groups.map((group: any) => (
+      {Transactions.map((Transaction: any) => (
         <div 
-          key={group.id} 
+          key={Transaction.id} 
           style={{
             border: "1px solid #ccc",
             padding: "10px",
@@ -35,19 +41,15 @@ export default function Gotogrouppages()
             backgroundColor: "#f9f9f9",
           }}
         >
-          <h3>{group.name} {group.base_currency}</h3>
+          <h3>{Transaction.title} : {Transaction.total_amount_cents}</h3>
         </div>
       ))}
+     
     </div>
+    
   );
-};
 
-
-
-
-
-
-
+}
 
 
 
