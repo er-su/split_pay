@@ -6,7 +6,7 @@ import { useState } from 'react';
 import api from '../components/api';
 import GoogleLogin from '../components/googleLogin';
 import { useEffect } from 'react';
-
+import groupTrans from "../group/groupTrans";
 
 function App() {
 const navigate = useNavigate();
@@ -31,25 +31,127 @@ const AddGroupForm = () => {
   useEffect(() => {
     Getgroups();
   }, []);
+  
+  const Deletegroups = async (Id_Group:number) => {
+    try {
+      console.log(Id_Group)
+      await api.delete(`/groups/${Id_Group}`, {
+  params: { hard: true }});
+    Setgroups(prevGroups => prevGroups.filter((g: any)=> g.id !== Id_Group));
+    }
+    catch (error: any) 
+    {
+    console.error("User not authenticated");
+    GoogleLogin()
+    return null;
+    }
+    };
+
+
 
    return (
-    <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-      {groups.map((group: any) => (
-        <div 
-          key={group.id} 
+      <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+      {groups.map((group:any) => (
+        <div
+          key={group.id}
           style={{
+            position: "relative", // 🔹 allows absolute positioning inside
             border: "1px solid #ccc",
-            padding: "10px",
+            padding: "10px 10px 20px 10px",
             borderRadius: "8px",
             width: "200px",
             backgroundColor: "#f9f9f9",
+            boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
           }}
         >
-          <h3>{group.name} {group.base_currency}</h3>
+          {/* ❌ DELETE BUTTON */}
+          <button
+            onClick={() => Deletegroups(group.id)}
+            style={{
+              position: "absolute",
+              top: "5px",
+              right: "8px",
+              background: "transparent",
+              border: "none",
+              color: "#888",
+              fontWeight: "bold",
+              cursor: "pointer",
+              fontSize: "18px",
+              lineHeight: "1",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "red")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}
+            title="Delete Group"
+          >
+            ×
+          </button>
+
+          {/* CARD CONTENT */}
+          <h3 style={{ marginTop: "10px" }}>
+            {group.name} : {group.base_currency}
+          </h3>
+
+          <button
+            onClick={() =>
+              navigate("/GroupTransaction", { state: { groupId: group.id } })
+            }
+            style={{
+              marginTop: "10px",
+              padding: "5px 10px",
+              border: "none",
+              borderRadius: "4px",
+              backgroundColor: "#007bff",
+              color: "#fff",
+              cursor: "pointer",
+            }}
+          >
+            Go to Transactions
+          </button>
         </div>
       ))}
       <button onClick={AddGroupForm}>Create A group</button>
     </div>
+  
+    
+    // <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+    //   {groups.map((group: any) => (
+    //     <div 
+    //       key={group.id} 
+    //       style={{
+    //         border: "1px solid #ccc",
+    //         padding: "10px",
+    //         borderRadius: "8px",
+    //         width: "200px",
+    //         backgroundColor: "#f9f9f9",
+    //       }}
+    //     >
+
+    //       {/* ❌ delete button in top-right corner */}
+    //       <button
+    //         onClick={() => Deletegroups(group.id)}
+    //         style={{
+    //           position: "absolute",
+    //           top: "5px",
+    //           right: "8px",
+    //           background: "transparent",
+    //           border: "none",
+    //           color: "#888",
+    //           fontWeight: "bold",
+    //           cursor: "pointer",
+    //           fontSize: "16px",
+    //         }}
+    //         title="Delete Group"
+    //       >
+    //       </button>
+    //       <h3>{group.name} : {group.base_currency}</h3>
+    //       <button onClick={()=>navigate("/GroupTransaction", { state: { groupId:group.id } })}>Go to Transactions</button>
+    //       {/* <button onClick={()=>navigate(`/GroupTransaction/${group.id}`)}>Go to Transactions</button> */}
+        
+    //     </div>
+    //   ))}
+     
+    //   <button onClick={AddGroupForm}>Create A group</button>
+    // </div>
     
   );
  
