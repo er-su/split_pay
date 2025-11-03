@@ -1,4 +1,4 @@
-import type { Group, Transaction, User } from "./types";
+import type { Group, Transaction, User, TransactionInput } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 const OAUTH_URL = import.meta.env.VITE_OAUTH_URL ?? "/placeholder_for_now"; // update later 
@@ -87,9 +87,14 @@ export const api = {
   createGroup: (payload: Partial<Group>) => apiFetch<Group>("/groups", { method: "POST", body: JSON.stringify(payload) }),
   getGroup: (id: number) => apiFetch<Group>(`/groups/${id}`),
 
+  fetchGroupMembers: async (groupId: number) => {
+    return apiFetch<{ user_id: number; email: string, display_name: string | null }[]>(
+      `/groups/${groupId}/members`
+    );
+  },
   // Transactions within a group 
   listTransactions: (groupId: number) => apiFetch<Transaction[]>(`/groups/${groupId}/transactions`),
-  createTransaction: (groupId: number, payload: Partial<Transaction>) =>
+  createTransaction: (groupId: number, payload: Partial<TransactionInput>) =>
     apiFetch<Transaction>(`/groups/${groupId}/transactions`, { method: "POST", body: JSON.stringify(payload) }),
   getTransaction: (txId: number) => apiFetch<Transaction>(`/transactions/${txId}`),
 

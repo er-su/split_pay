@@ -21,20 +21,38 @@ export interface Member {
   is_admin: boolean;
 }
 
-export interface Transaction {
+export interface Transaction extends TransactionInput{
   id: number;
   group_id: number;
   payer_id: number;
   exchange_rate_to_group: number;
   total_amount_cents: string; // this needs to be converted to decimal later
-  title?: string;
-  memo?: string;
+  title: string;
+  memo?: string | null;
   currency: string;
   splits: Split[];
 }
 
-export interface Split {
+export interface Split extends SplitInput{
   user_id: number;
+  user_display_name?: string;
   amount_cents: string; // this needs to be converted to decimal later
   note?: string;
 }
+
+export type TransactionInput = {
+  group_id: number;
+  payer_id: number;
+  exchange_rate_to_group: number;
+  total_amount_cents: string; // this needs to be converted to decimal later
+  title: string;
+  memo?: string | null;
+  currency: string;
+  splits: SplitInput[];
+}
+
+export type SplitInput = {
+  user_id: number;
+  amount_cents: string  // local numeric representation
+  note?: string;
+};
