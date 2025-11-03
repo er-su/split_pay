@@ -128,7 +128,7 @@ class Transaction(Base):
     creator_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
-    title: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
+    title: Mapped[str] = mapped_column(String(300), nullable=True)
     memo: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # store amounts in integer "cents" to avoid floating point problems

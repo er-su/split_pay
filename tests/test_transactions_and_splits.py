@@ -100,6 +100,7 @@ def test_create_transaction_non_member_forbidden(client, db_session, setup_env):
         "payer_id": users[0].id,
         "total_amount_cents": (60.00),
         "currency": "USD",
+        "title": "Test",
         "splits": [{"user_id": users[0].id, "amount_cents": (60.00)}],
     }
 
@@ -115,6 +116,7 @@ def test_create_transaction_empty_splits(client, db_session, setup_env):
         "payer_id": users[0].id,
         "total_amount_cents": "50.00",
         "currency": "USD",
+        "title": "Test",
         "splits": [],
     }
 
@@ -132,6 +134,7 @@ def test_create_transaction_nonsumming_splits(client: TestClient, db_session: Se
         "payer_id": users[0].id,
         "total_amount_cents": "50.00",
         "currency": "USD",
+        "title": "Test",
         "splits": [
             {"user_id": users[1].id, "amount_cents": "25.00"},
             {"user_id": users[2].id, "amount_cents": "25.01"}
@@ -152,6 +155,7 @@ def test_transaction_rounding_issues(client: TestClient, db_session: Session, se
         "payer_id": users[0].id,
         "total_amount_cents": str(amount),
         "currency": "USD",
+        "title": "Test",
         "splits": [
             {"user_id": users[1].id, "amount_cents": str(per_user)},
             {"user_id": users[2].id, "amount_cents": str(per_user)},
@@ -170,6 +174,7 @@ def test_create_transaction_with_non_member_split(client: TestClient, db_session
         "payer_id": users[0].id,
         "total_amount_cents": "50.00",
         "currency": "USD",
+        "title": "Test",
         "splits": [
             {"user_id": users[1].id, "amount_cents": "25.00"},
             {"user_id": 1000, "amount_cents": "25.00"}
@@ -187,6 +192,7 @@ def test_create_transaction_with_self_member_split(client: TestClient, db_sessio
         "payer_id": users[0].id,
         "total_amount_cents": "50.00",
         "currency": "USD",
+        "title": "Test",
         "splits": [
             {"user_id": users[1].id, "amount_cents": "25.00"},
             {"user_id": users[0].id, "amount_cents": "25.00"}
@@ -208,6 +214,7 @@ def test_get_transaction_success(client, db_session, setup_env):
         payer_id=users[1].id,
         total_amount_cents=10000,
         currency="USD",
+        title= "Test",
     )
     db_session.add(tx)
     db_session.commit()
@@ -281,6 +288,7 @@ def test_delete_transaction_by_admin(client: TestClient, db_session: Session, se
         group_id=group.id,
         creator_id=users[1].id,
         payer_id=users[1].id,
+        title="Test",
         total_amount_cents="60.00",
         currency="USD",
         splits = [

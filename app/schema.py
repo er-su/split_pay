@@ -113,7 +113,7 @@ class CreateTransactionIn(BaseModel):
     total_amount_cents: Decimal
     currency: Currency
     exchange_rate_to_group: Optional[float] = None
-    title: Optional[Annotated[str, Field(max_length=300)]] = None
+    title: Annotated[str, Field(max_length=100)]
     memo: Optional[str] = None
     splits: List[SplitIn]
 
@@ -154,7 +154,7 @@ class TransactionOut(BaseModel):
     total_amount_cents: Annotated[Decimal, Field(ge=0)]
     currency: str
     exchange_rate_to_group: Optional[float]
-    title: Optional[str]
+    title: str
     memo: Optional[str]
     splits: List[SplitOut]
 
