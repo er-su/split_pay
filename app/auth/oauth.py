@@ -7,6 +7,11 @@ import requests
 from typing import Dict, Any
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
+import dotenv
+from pathlib import Path
+
+dotenv.load(".env")
+
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
@@ -50,7 +55,7 @@ def verify_id_token(id_token_str: str) -> Dict[str, Any]:
     """
     # google-auth will validate signature, exp, audience
     try:
-        claims = id_token.verify_oauth2_token(id_token_str, google_requests.Request(), GOOGLE_CLIENT_ID)
+        claims = id_token.verify_oauth2_token(id_token_str, google_requests.Request(), GOOGLE_CLIENT_ID, clock_skew_in_seconds=60)
     except ValueError as exc:
         # invalid token
         raise

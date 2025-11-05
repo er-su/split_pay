@@ -72,7 +72,7 @@ def google_callback(code: str, db: Session = Depends(get_db)):
     token = create_access_token(user.id)
 
     response= RedirectResponse(
-        url="http://127.0.0.1:5173/auth/callback",
+        url="http://127.0.0.1:5173/",
         status_code=status.HTTP_303_SEE_OTHER
     )
     # response= JSONResponse(

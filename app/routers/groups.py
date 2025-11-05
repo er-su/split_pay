@@ -48,7 +48,7 @@ def _require_active_group(group: Group | None, enforce_archive: bool = False):
     elif enforce_archive and group.is_archived:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Group is archived")
 
-@router.post("/groups/", response_model=GroupOut, status_code=status.HTTP_201_CREATED, tags=["groups"])
+@router.post("/groups", response_model=GroupOut, status_code=status.HTTP_201_CREATED, tags=["groups"])
 def create_group(
     payload: CreateGroupIn,
     db: Session = Depends(get_db),

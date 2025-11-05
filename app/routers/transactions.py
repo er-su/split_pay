@@ -190,7 +190,9 @@ def create_transaction(
     # get transaction rate
     if group.base_currency != payload.currency and payload.exchange_rate_to_group is None: # type: ignore
         exchange_rate = get_exchange_rate(payload.currency, group.base_currency) # type: ignore
-
+    else:
+        exchange_rate = None
+        
     splits = [Split(
         user_id=split.user_id, 
         amount_cents=split.amount_cents, 
