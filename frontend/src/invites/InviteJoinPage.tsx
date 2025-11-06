@@ -1,46 +1,43 @@
-// src/pages/group/GroupPage.tsx
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+// src/pages/invite/InviteJoinPage.tsx
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { apiFetch } from "../utils/api_util";
 
-export default function GroupPage() {
-  const { groupId } = useParams();
-  const [inviteLink, setInviteLink] = useState<string | null>(null);
+export default function InviteJoinPage() {
+  const { token } = useParams();
+  const navigate = useNavigate();
+  const [status, setStatus] = useState("Joining group...");
 
-  const handleCreateInvite = async () => {
-    try {
-      const res = await apiFetch<{ invite_link: string }>(
-        `/api/groups/${groupId}/invite`,
-        { method: "POST" }
-      );
-      setInviteLink(res.invite_link);
-    } catch (err) {
-      console.error("Failed to create invite:", err);
-      alert("Could not create invite link.");
-    }
-  };
+  useEffect(() => {
+    const joinGroup = async () => {
+      if (!token) {
+        setStatus("Invalid invite link");
+        return;
+      }
+      try {
+        const res = await apiFetch<{ message: string; group_id?: number }>(
+          `/groups/join/${token}`,
+          { method: "GET" }
+        );
+        setStatus(res.message);
+        if (res.group_id) {
+          setTimeout(() => navigate(`/group/${res.group_id}`), 1500);
+        }
+      } catch (err: any) {
+        if (err.status === 401) {
+          // not authenticated → redirect to Google login
+          window.location.href = "/api/auth/google/login";
+          return;
+        }
+        setStatus("Invalid or expired invite link");
+      }
+    };
+    joinGroup();
+  }, [token, navigate]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold">Group #{groupId}</h1>
-
-      <button
-        onClick={handleCreateInvite}
-        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-      >
-        Create Invite Link
-      </button>
-
-      {inviteLink && (
-        <div className="mt-3 p-3 bg-gray-100 rounded">
-          <p className="text-sm">Share this link:</p>
-          <input
-            className="w-full mt-1 p-2 border rounded"
-            value={inviteLink}
-            readOnly
-          />
-        </div>
-      )}
+    <div className="flex flex-col items-center justify-center h-screen">
+      <p className="text-lg font-medium">{status}</p>
     </div>
   );
 }

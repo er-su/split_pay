@@ -1,7 +1,6 @@
 import type { Group, Transaction, User, TransactionInput } from "./types";
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "";
-const OAUTH_URL = import.meta.env.VITE_OAUTH_URL ?? "/placeholder_for_now"; // update later 
+const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000";
 
 type FetchOptions = RequestInit & { query?: Record<string, string | number | undefined> };
 
@@ -21,7 +20,7 @@ function buildUrl(path: string, query?: Record<string, any>) {
 async function handle401Redirect() {
   try {
     // Ask backend for the actual Google login URL
-    const res = await fetch(`${API_BASE}/auth/google/login`, {
+    const res = await fetch(`${API_BASE}/api/auth/google/login`, {
       credentials: "include",
     });
     const data = await res.json();
@@ -35,7 +34,7 @@ async function handle401Redirect() {
   }
 
   // fallback (if something went wrong)
-  window.location.href = `${API_BASE}/auth/google/login`;
+  window.location.href = `${API_BASE}/api/auth/google/login`;
 }
 
 export async function apiFetch<T = any>(path: string, opts: FetchOptions = {}): Promise<T> {
@@ -83,7 +82,8 @@ export async function apiFetch<T = any>(path: string, opts: FetchOptions = {}): 
 export const api = {
 	// collection of api endpoint shortcuts, import and use
   // Groups
-  listGroups: () => apiFetch<Group[]>("/groups"),
+  getMe: () => apiFetch<User>("/me"),
+  listGroups: () => apiFetch<Group[]>("/me/groups"),
   createGroup: (payload: Partial<Group>) => apiFetch<Group>("/groups", { method: "POST", body: JSON.stringify(payload) }),
   getGroup: (id: number) => apiFetch<Group>(`/groups/${id}`),
 
