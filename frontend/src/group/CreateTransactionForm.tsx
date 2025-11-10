@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../utils/api_util";
-import type { Transaction } from "../utils/types";
+import type { Transaction, User } from "../utils/types";
 
 type Member = { user_id: number; display_name: string | null };
 
@@ -20,7 +20,7 @@ export const CreateTransactionForm: React.FC<Props> = ({ groupId, onCreated }) =
   const [memo, setMemo] = useState("");
   const [payerId, setPayerId] = useState<number | "">("");
   const [currency, setCurrency] = useState("USD");
-  const [members, setMembers] = useState<Member[]>([]);
+  const [members, setMembers] = useState<User[]>([]);
   const [splits, setSplits] = useState<SplitInput[]>([
     { user_id: -1, amount_cents: "", note: "" },
   ]);
@@ -109,7 +109,7 @@ export const CreateTransactionForm: React.FC<Props> = ({ groupId, onCreated }) =
   };
 
   const payerName = (uid: number | "") =>
-    members.find((m) => m.user_id === uid)?.display_name || "Unknown";
+    members.find((m) => m.id === uid)?.display_name || "Unknown";
 
   // --- Render ---
   return (
@@ -154,8 +154,8 @@ export const CreateTransactionForm: React.FC<Props> = ({ groupId, onCreated }) =
           >
             <option value="">Select payer</option>
             {members.map((m) => (
-              <option key={m.user_id} value={m.user_id}>
-                {m.display_name || `User ${m.user_id}`}
+              <option key={m.id} value={m.id}>
+                {m.display_name || `User ${m.id}`}
               </option>
             ))}
           </select>
@@ -193,10 +193,10 @@ export const CreateTransactionForm: React.FC<Props> = ({ groupId, onCreated }) =
             >
               <option value="">Select user</option>
               {members
-                .filter((m) => m.user_id !== payerId)
+                .filter((m) => m.id !== payerId)
                 .map((m) => (
-                  <option key={m.user_id} value={m.user_id}>
-                    {m.display_name || `User ${m.user_id}`}
+                  <option key={m.id} value={m.id}>
+                    {m.display_name || `User ${m.id}`}
                   </option>
                 ))}
             </select>

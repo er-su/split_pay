@@ -1,4 +1,4 @@
-import type { Group, Transaction, User, TransactionInput } from "./types";
+import type { Group, Transaction, User, TransactionInput, Due } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000";
 
@@ -86,9 +86,10 @@ export const api = {
   listGroups: () => apiFetch<Group[]>("/me/groups"),
   createGroup: (payload: Partial<Group>) => apiFetch<Group>("/groups", { method: "POST", body: JSON.stringify(payload) }),
   getGroup: (id: number) => apiFetch<Group>(`/groups/${id}`),
+  getDues: (groupId:number) => apiFetch<Due[]>(`/groups/${groupId}/dues`),
 
   fetchGroupMembers: async (groupId: number) => {
-    return apiFetch<{ user_id: number; email: string, display_name: string | null }[]>(
+    return apiFetch<User[]>(
       `/groups/${groupId}/members`
     );
   },
@@ -97,6 +98,7 @@ export const api = {
   createTransaction: (groupId: number, payload: Partial<TransactionInput>) =>
     apiFetch<Transaction>(`/groups/${groupId}/transactions`, { method: "POST", body: JSON.stringify(payload) }),
   getTransaction: (txId: number) => apiFetch<Transaction>(`/transactions/${txId}`),
+
 
   // users / me
   me: () => apiFetch<User>("/me"),

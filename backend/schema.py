@@ -79,6 +79,12 @@ class Group(Base):
     is_archived: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="0")
     deleted_at: Mapped[Optional[DateTime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    creator: Mapped[Optional["User"]] = relationship("User", lazy="joined")
+
+    @property
+    def creator_display_name(self) -> Optional[str]:
+        return self.creator.display_name if self.creator else None
+
     def archive(self) -> None:
         self.is_archived = True
 
@@ -138,8 +144,17 @@ class Transaction(Base):
 
     group: Mapped["Group"] = relationship("Group", back_populates="transactions")
     creator: Mapped[Optional["User"]] = relationship("User", back_populates="transactions_created", foreign_keys=[creator_id])
-    splits: Mapped[List["Split"]] = relationship("Split", back_populates="transaction", cascade="all, delete-orphan")
+    splits: Mapped[List["Split"]] = relationship("Split", back_populates="transaction", cascade="all, delete-orphan", lazy="joined")
+    payer: Mapped[Optional["User"]] = relationship("User", foreign_keys=[payer_id], lazy="joined",)
+    
+    @property
+    def creator_display_name(self) -> Optional[str]:
+        return self.creator.display_name if self.creator else None
 
+    @property
+    def payer_display_name(self) -> Optional[str]:
+        return self.payer.display_name if self.payer else None
+    
     def __repr__(self):
         return f"<Transaction id={self.id} group={self.group_id} total={self.total_amount_cents}>"
 

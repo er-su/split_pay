@@ -14,6 +14,20 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 COOKIE_NAME = "access_token"
 COOKIE_MAX_AGE = 3600  # 1 hour in seconds; should match JWT_TTL_SECONDS
 
+@router.post("/logout")
+def logout_user(response: Response):
+    """
+    Logs out the current user by removing the JWT cookie.
+    """
+    response.delete_cookie(
+        key="access_token",
+        path="/",
+        httponly=True,
+        secure=False,
+        samesite="lax",     
+    )
+    return {"message": "Successfully logged out"}
+
 @router.get("/google/login")
 def google_login():
     """
@@ -103,11 +117,11 @@ def google_callback(code: str, db: Session = Depends(get_db)):
     # )
    #return {"user": {"id": user.id, "email": user.email, "display_name": user.display_name}}
 
-@router.post("/logout")
+""" @router.post("/logout")
 def logout(response: Response):
     # Clear the cookie on logout. This does not revoke tokens since tokens are stateless.
     response.delete_cookie(COOKIE_NAME, path="/")
-    return {"msg": "logged out"}
+    return {"msg": "logged out"} """
 
 
 
@@ -119,7 +133,7 @@ def logout(response: Response):
 #     user_id = ...  # decode from sid (your decode_access_token)
 #     user = db.get(User, user_id)
 #     return {"user": {"id": user.id, "email": user.email, "display_name": user.display_name}}
-@router.get("/me")
+""" @router.get("/me")
 def me(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get(COOKIE_NAME)
     if not token:
@@ -143,7 +157,7 @@ def me(request: Request, db: Session = Depends(get_db)):
 
     return {"user": {"id": user.id, "email": user.email, "display_name": user.display_name}}
 
-
+ """
 
 @router.get("/dev/echo-cookies")
 def echo_cookies(request: Request):

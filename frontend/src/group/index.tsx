@@ -2,9 +2,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api, apiFetch } from "../utils/api_util";
-import type { Transaction, Group } from "../utils/types";
+import type { Transaction, Group, User, Due } from "../utils/types";
 import { Loading } from "../components/Loading";
 import { CreateTransactionForm } from "./CreateTransactionForm";
+import { TransactionList } from "./TransactionList";
+import { ErrorMessage } from "../components/ErrorMessage";
+import { DueList } from "./DueList";
 
 export default function GroupPage() {
   const groupId = useParams().id;
@@ -12,6 +15,7 @@ export default function GroupPage() {
   const [error, setError] = useState<any>(null);
   const [transactions, setTransactions] = useState<Transaction[] | null>(null);
   const [group, setGroup] = useState<Group | null>(null);
+  const [dues, setDues] = useState<Due[] | null>(null);
 
 	console.log(groupId)
 
@@ -32,11 +36,10 @@ export default function GroupPage() {
   const load = async () => {
     setError(null);
     try {
-      const [g, txs] = await Promise.all([api.getGroup(numberGroupId), api.listTransactions(numberGroupId)]);
+      const [g, txs, dues] = await Promise.all([api.getGroup(numberGroupId), api.listTransactions(numberGroupId), api.getDues(numberGroupId)]);
       setGroup(g);
       setTransactions(txs);
-			console.log(g)
-			console.log(txs)
+      setDues(dues)
     } catch (err) {
       setError(err);
     }
@@ -58,6 +61,14 @@ export default function GroupPage() {
     <div className="p-6">
       <h1>{group.name}</h1>
       <div style={{ marginBottom: 16 }}>{group.description}</div>
+      
+      <h2>User Dues</h2>
+      {dues !== null ? <DueList dues={dues} currency={group.base_currency}/> : <p>No other members yet!</p>}
+      
+
+      <h2>Transactions</h2>
+      {transactions !== null ? <TransactionList transactions={transactions}/> : <p>Create some transactions!</p>}
+      
 
       <h2>New transaction</h2>
       <CreateTransactionForm groupId={numberGroupId} onCreated={onNewTx} />

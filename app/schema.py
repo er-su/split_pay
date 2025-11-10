@@ -53,6 +53,7 @@ class GroupOut(BaseModel):
     description: Optional[str]
     base_currency: Currency
     created_by: Optional[int]
+    creator_display_name: Optional[str]
     location_name: Optional[str]
 
     model_config = ConfigDict(from_attributes=True)
@@ -66,6 +67,11 @@ class UpdateGroupIn(CreateGroupIn):
 OtherUserId = Annotated[int, Field(description="The other user owes the current user")]
 class GroupDuesOut(BaseModel):
     dues: Dict[OtherUserId, Decimal]
+
+class IndividualDueOut(BaseModel):
+    other_user_id: int
+    other_user_display_name: str
+    amount_owed: Decimal
 
 # Member in/out
 class CreateMemberIn(BaseModel):
@@ -150,7 +156,10 @@ class TransactionOut(BaseModel):
     """Output representation for a transaction (includes splits)."""
     id: int
     group_id: int
+    creator_id: int
+    creator_display_name: str
     payer_id: int
+    payer_display_name: str
     total_amount_cents: Annotated[Decimal, Field(ge=0)]
     currency: str
     exchange_rate_to_group: Optional[float]

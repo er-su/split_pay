@@ -9,7 +9,8 @@ export interface Group {
   name: string;
   description?: string;
   base_currency: string;
-  created_by?: number;
+  created_by: number;
+  creator_display_name?: string;
   location_name?: number;
 }
 
@@ -24,7 +25,10 @@ export interface Member {
 export interface Transaction extends TransactionInput{
   id: number;
   group_id: number;
+  creator_id: number;
+  creator_display_name: string;
   payer_id: number;
+  payer_display_name: string;
   exchange_rate_to_group: number;
   total_amount_cents: string; // this needs to be converted to decimal later
   title: string;

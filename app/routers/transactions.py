@@ -259,9 +259,8 @@ def get_all_transactions(
     return transactions
 
 # get specific transaction
-@router.get("/groups/{group_id}/transactions/{transaction_id}", response_model=TransactionOut)
+@router.get("/transactions/{transaction_id}", response_model=TransactionOut)
 def get_transaction(
-    group_id: int,
     transaction_id: int,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
@@ -283,15 +282,14 @@ def get_transaction(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Transaction not found")
 
     group = transaction.group
-    _require_member(db, group_id, current_user.id)
+    _require_member(db, group.id, current_user.id)
     _require_active_group(group)
 
     return transaction
 
 # edit specific transaction
-@router.put("/groups/{group_id}/transactions/{transaction_id}", response_model=TransactionOut)
+@router.put("/transactions/{transaction_id}", response_model=TransactionOut)
 def update_transaction(
-    group_id: int,
     transaction_id: int,
     payload: UpdateTransactionIn,
     db: Session = Depends(get_db),
@@ -313,6 +311,7 @@ def update_transaction(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Transaction not found")
   
     group = transaction.group
+    group_id = group.id
     membership = _require_member(db, group_id, current_user.id)
     _require_active_group(group, True)
 
@@ -334,9 +333,8 @@ def update_transaction(
 
     return transaction
 
-@router.delete("/groups/{group_id}/transaction/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/transaction/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_transaction(
-    group_id: int,
     transaction_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -351,6 +349,7 @@ def delete_transaction(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Transaction not found")
     
     group = transaction.group
+    group_id = group.id
     membership = _require_member(db, group_id, current_user.id)
     _require_active_group(group, True)
 

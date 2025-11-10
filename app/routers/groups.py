@@ -12,6 +12,7 @@ from app.schema import (
     CreateGroupIn,
     GroupDuesOut,
     GroupOut,
+    IndividualDueOut,
     MemberOut,
     UpdateGroupIn,
     CreateMemberIn,
@@ -182,7 +183,7 @@ def soft_delete_group(
     db.commit()
     return None
 
-@router.get("/groups/{group_id}/dues", response_model=GroupDuesOut, tags=["groups"])
+@router.get("/groups/{group_id}/dues", response_model=List[IndividualDueOut], tags=["groups"])
 def get_current_dues(
     group_id: int, 
     db: Session = Depends(get_db), 
@@ -192,7 +193,7 @@ def get_current_dues(
     _require_member(db, group_id, current_user.id)
     _require_active_group(group, True)
 
-    dues = {(membership.user_id) : Decimal("0.00") for membership in group.members if membership.user_id != current_user.id} # type: ignore
+    dues = {(membership.user_id) : [Decimal("0.00"), membership.user.display_name] for membership in group.members if membership.user_id != current_user.id} # type: ignore
 
     for transaction in group.transactions: # type: ignore
         #TODO if there is a rate, then multiply all cents with rate
@@ -212,19 +213,24 @@ def get_current_dues(
             for split in transaction.splits:
                 if split.user_id == current_user.id:
                     raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid split; contains self")
-                dues[split.user_id] += split.amount_cents * multiplier
+                (dues[split.user_id][0]) += split.amount_cents * multiplier
         
         # not the payer, see if they are in the splits
         else:
             for split in transaction.splits:
                 # if the user is in the split
                 if split.user_id == current_user.id:
-                    dues[transaction.payer_id] -= split.amount_cents * multiplier
+                    dues[transaction.payer_id][0] -= split.amount_cents * multiplier
                     break
 
-    return GroupDuesOut(
-        dues=dues
-    )
+    list_of_dues: List[IndividualDueOut] = [
+        IndividualDueOut(
+            other_user_id = user_id, 
+            other_user_display_name=dues[user_id][1], 
+            amount_owed=dues[user_id][0]
+        )
+    for user_id in dues.keys()]
+    return list_of_dues
 
 # Member stuff
 @router.post("/groups/{group_id}/members", response_model=MemberOut, tags=["members"])

@@ -10,7 +10,7 @@ from google.auth.transport import requests as google_requests
 import dotenv
 from pathlib import Path
 
-dotenv.load(".env")
+dotenv.load_dotenv(r"C:\Users\erick\OneDrive\Desktop\Code\split_pay\.env")
 
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")

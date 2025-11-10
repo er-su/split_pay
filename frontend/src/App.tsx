@@ -6,12 +6,14 @@ import GroupPage from "./group/index";
 import TransactionPage from ".//transaction/index";
 import InviteJoinPage from "./invites/InviteJoinPage"
 import { Loading } from "./components/Loading";
+import { LogoutButton } from "./components/LogoutButton";
 
 export default function App() {
   return (
     <div>
       <nav style={{ padding: 12, borderBottom: "1px solid #eee" }}>
         <Link to="/">Home</Link>
+        <LogoutButton />
       </nav>
       <Suspense fallback={<Loading />}>
         <Routes>
