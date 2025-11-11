@@ -16,9 +16,10 @@ export interface Group {
 
 export interface Member {
   user_id: number;
-  group_id: number,
-  joined_at?: string;
-  left_at?: string;
+  group_id: number;
+  display_name: string;
+  joined_at: string | null;
+  left_at: string | null;
   is_admin: boolean;
 }
 
@@ -37,9 +38,15 @@ export interface Transaction extends TransactionInput{
   splits: Split[];
 }
 
+export interface Due {
+  other_user_id: number;
+  other_user_display_name: string;
+  amount_owed: string;
+}
+
 export interface Split extends SplitInput{
   user_id: number;
-  user_display_name?: string;
+  user_display_name: string | null;
   amount_cents: string; // this needs to be converted to decimal later
   note?: string;
 }

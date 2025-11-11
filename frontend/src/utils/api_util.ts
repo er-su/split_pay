@@ -1,4 +1,4 @@
-import type { Group, Transaction, User, TransactionInput, Due } from "./types";
+import type { Group, Transaction, User, TransactionInput, Due, Member } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000";
 
@@ -89,7 +89,7 @@ export const api = {
   getDues: (groupId:number) => apiFetch<Due[]>(`/groups/${groupId}/dues`),
 
   fetchGroupMembers: async (groupId: number) => {
-    return apiFetch<User[]>(
+    return apiFetch<Member[]>(
       `/groups/${groupId}/members`
     );
   },

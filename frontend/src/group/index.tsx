@@ -6,7 +6,6 @@ import type { Transaction, Group, User, Due } from "../utils/types";
 import { Loading } from "../components/Loading";
 import { CreateTransactionForm } from "./CreateTransactionForm";
 import { TransactionList } from "./TransactionList";
-import { ErrorMessage } from "../components/ErrorMessage";
 import { DueList } from "./DueList";
 
 export default function GroupPage() {

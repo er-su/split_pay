@@ -34,7 +34,6 @@ export default function TransactionPage() {
   if (!tx) return <Loading />;
 
   const payer_display_name = tx.payer_id === me?.id ? "You" : tx.payer_display_name
-
   return (
     <div style={{ padding: 20 }}>
       <h1>{tx.title ?? `Transaction #{tx.id}`}</h1>
