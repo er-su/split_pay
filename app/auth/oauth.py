@@ -10,8 +10,7 @@ from google.auth.transport import requests as google_requests
 import dotenv
 from pathlib import Path
 
-dotenv_path = Path(r"../../.env")
-dotenv.load_dotenv(Path(r".env"))
+dotenv.load_dotenv(dotenv.find_dotenv())
 
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")

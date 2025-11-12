@@ -12,6 +12,11 @@ export default function TransactionPage() {
   const [tx, setTx] = useState<Transaction | null>(null);
   const [me, setMe] = useState<User | null>(null);
   const [error, setError] = useState<any>(null);
+
+  function truncateToTwoDecimals(amount: string): string {
+    const [intPart, decPart] = amount.split(".");
+    return decPart ? `${intPart}.${decPart.slice(0, 2)}` : amount;
+  }
   
 
   useEffect(() => {
@@ -38,7 +43,7 @@ export default function TransactionPage() {
     <div style={{ padding: 20 }}>
       <h1>{tx.title ?? `Transaction #{tx.id}`}</h1>
       <div><strong>Payer:</strong> {payer_display_name}</div>      
-      <div><strong>Total Amount:</strong> {tx.total_amount_cents} {tx.currency}</div>
+      <div><strong>Total Amount:</strong> {truncateToTwoDecimals(tx.total_amount_cents)} {tx.currency}</div>
       <div><strong>Description:</strong> {tx.memo ?? "No memo"}</div>
       <h2>Splits</h2>
       <SplitList splits={tx.splits} me={me} payer_display_name={payer_display_name} />

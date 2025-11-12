@@ -1,7 +1,7 @@
 venv/
 **/__pycache__/
 **/.pytest_cache
-.env
+**/.env
 .vscode/
 app/app.db
 node_modules/
