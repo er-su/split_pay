@@ -7,7 +7,7 @@ import TransactionPage from ".//transaction/index";
 import InviteJoinPage from "./invites/InviteJoinPage"
 import { Loading } from "./components/Loading";
 import { LogoutButton } from "./components/LogoutButton";
-
+import "./App.css"
 export default function App() {
   return (
     <div>
