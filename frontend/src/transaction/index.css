@@ -1,0 +1,15 @@
+.dues-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 20px 24px;
+  max-width: 480px;
+  margin: 20px auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Make sure the text is visible on white */
+.dues-card h1,
+.dues-card h2,
+.dues-card div {
+  color: #000000;
+}

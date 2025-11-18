@@ -5,7 +5,7 @@ import type { Transaction, User } from "../utils/types";
 import { Loading } from "../components/Loading";
 import { SplitList } from "./SplitList";
 import { ErrorMessage } from "../components/ErrorMessage";
-
+import "./index.css"
 export default function TransactionPage() {
   const { id } = useParams<{ id: string }>();
   const txId = Number(id);
@@ -40,7 +40,7 @@ export default function TransactionPage() {
 
   const payer_display_name = tx.payer_id === me?.id ? "You" : tx.payer_display_name
   return (
-    <div style={{ padding: 20 }}>
+      <div className="dues-card">
       <h1>{tx.title ?? `Transaction #{tx.id}`}</h1>
       <div><strong>Payer:</strong> {payer_display_name}</div>      
       <div><strong>Total Amount:</strong> {truncateToTwoDecimals(tx.total_amount_cents)} {tx.currency}</div>
