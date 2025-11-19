@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI
 
 from .routers import groups, transactions, auth, users, invites
-from .db import engine, SessionLocal, connection
+from .db import engine #, SessionLocal, connection
 from backend.schema import Base
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import sessionmaker
@@ -22,7 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
     
 )
-
-Base.metadata.create_all(bind=connection)
+Base.metadata.create_all(bind=engine)
+#Base.metadata.create_all(bind=connection)
 
 print(Base.metadata.tables.keys())
