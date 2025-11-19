@@ -27,7 +27,7 @@ div[style*="cursor: pointer"][style*="margin-bottom: 8px"] > div {
 body {
   margin: 0 !important;
   font-family: Arial, Helvetica, sans-serif !important;
-  background-color: #11491f; /* dark green */
+  background-color: #579267; /* dark green */
 }
 
 /* Assume your React page renders a top-level div that contains the form */
@@ -108,6 +108,10 @@ p {
   color: #000000 !important;   /* pitch black */
 }
 
+.home-link {
+  color: #ffffff;
+  padding-right: 1rem;
+}
 
 
 
