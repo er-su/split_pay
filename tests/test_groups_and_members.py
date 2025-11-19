@@ -4,6 +4,10 @@ from app.deps import get_current_user  # your auth dep
 from app.main import app
 import random
 
+from app.db import SessionLocal
+from backend.schema import GroupMember
+
+
 def get_current_user_override(user):
     def override():
         return user
@@ -333,3 +337,22 @@ def test_archive_unarchive_system(client, db_session):
     app.dependency_overrides[get_current_user] = get_current_user_override(user1)
     success_unarchive_resp = client.post("groups/1/unarchive")
     assert success_unarchive_resp.status_code == 204
+
+
+
+def test_group_member_query_runs_without_error():
+    db = SessionLocal()
+    try:
+        gm = (
+            db.query(GroupMember)
+            .filter(
+                GroupMember.group_id == 1,
+                GroupMember.user_id == 1,
+                GroupMember.left_at.is_(None),
+            )
+            .first()
+        )
+        # We don't care what it returns, only that it doesn't crash
+        assert True
+    finally:
+        db.close()
