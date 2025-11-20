@@ -324,12 +324,37 @@ def update_transaction(
     if membership.is_admin is False and transaction.creator_id != current_user.id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Must be admin or creator")
     
-    for field, value in payload.model_dump(exclude_unset=True).items():
-        if value is not None:
-            setattr(transaction, field, value)
+    # first update scalar data
+    scalar_data = payload.model_dump(exclude={"splits"}, exclude_unset=True)
+    for field, value in scalar_data.items():
+        setattr(transaction, field, value)
+
+    # then update the nested data
+    if payload.splits is not None:
+        # remove existing splits
+        for old in list(transaction.splits):
+            db.delete(old)
+
+        db.flush()  # ensures deletes are applied before reinserting
+
+        # Add new splits
+        new_splits = []
+        for split_in in payload.splits:
+            new_split = Split(
+                transaction_id=transaction.id,
+                user_id=split_in.user_id,
+                amount_cents=split_in.amount_cents,
+                note=split_in.note,
+                is_payer=False,  # normal splits are never payer
+            )
+            new_splits.append(new_split)
+
+        transaction.splits = new_splits
 
     db.commit()
     db.refresh(transaction)
+
+    print(transaction)
 
     return transaction
 

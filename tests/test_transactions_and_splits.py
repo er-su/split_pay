@@ -243,20 +243,37 @@ def test_update_transaction_by_creator(client, db_session, setup_env):
         group_id=group.id,
         creator_id=creator.id,
         payer_id=creator.id,
-        total_amount_cents=3000,
+        total_amount_cents=Decimal("60.00"),
         currency="USD",
         title="Old title",
+        splits = [
+            Split(user_id = users[0].id, amount_cents = "30.00"),
+            Split(user_id = users[2].id, amount_cents = "30.00"),
+        ]
     )
     db_session.add(tx)
     db_session.commit()
     db_session.refresh(tx)
 
     res = client.put(
-        f"/groups/{group.id}/transactions/{tx.id}",
-        json={"title": "New title", "memo": "Updated"},
+        f"/transactions/{tx.id}",
+        json={
+            "title": "New title",
+            "memo": "Updated",
+            "total_amount_cents": "50.00",
+            "splits": [
+                {"user_id": users[2].id, "amount_cents": 25.00},
+                {"user_id": users[0].id, "amount_cents": 25.00}
+            ], 
+        },
     )
+
     assert res.status_code == 200
-    assert res.json()["title"] == "New title"
+    assert (res := res.json())["title"] == "New title"
+    assert len(res["splits"]) == 2
+    assert Decimal(res["total_amount_cents"]) == Decimal("50.00")
+    for split in res["splits"]:
+        assert Decimal(split["amount_cents"]) == Decimal("25.00")
 
 
 def test_update_transaction_forbidden_for_non_creator(client, db_session, setup_env):
@@ -276,7 +293,7 @@ def test_update_transaction_forbidden_for_non_creator(client, db_session, setup_
     db_session.commit()
     db_session.refresh(tx)
 
-    res = client.put(f"/groups/{group.id}/transactions/{tx.id}", json={"title": "Hack attempt"})
+    res = client.put(f"/transactions/{tx.id}", json={"title": "Hack attempt"})
     assert res.status_code == 403
 
 def test_delete_transaction_by_admin(client: TestClient, db_session: Session, setup_env):
