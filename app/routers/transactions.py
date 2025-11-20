@@ -354,8 +354,6 @@ def update_transaction(
     db.commit()
     db.refresh(transaction)
 
-    print(transaction)
-
     return transaction
 
 @router.delete("/transaction/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)

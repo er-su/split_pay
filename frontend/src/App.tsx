@@ -7,8 +7,8 @@ import TransactionPage from ".//transaction/index";
 import InviteJoinPage from "./invites/InviteJoinPage"
 import { Loading } from "./components/Loading";
 import { LogoutButton } from "./components/LogoutButton";
-import CreateTransactionPage from "./pages/CreateTransactionForm_page";
-import EditTransactionPage from "./pages/EditTransactionForm_page";
+import CreateTransactionPage from "./pages/CreateTransactionPage";
+import EditTransactionPage from "./pages/EditTransactionPage";
 import { CreateGroupPage } from "./pages/CreateGroupPage";
 import "./App.css"
 export default function App() {
