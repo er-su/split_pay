@@ -12,7 +12,7 @@ export const CreateGroupPage: React.FC = () => {
       <CreateGroupForm
         onCreated={(group) => {
           // redirect after creation (optional)
-          navigate(`/groups/${group.id}`);
+          navigate(`/`);
         }}
       />
     </div>

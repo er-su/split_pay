@@ -31,17 +31,14 @@ export default function GroupPage() {
     if (!confirmed) return;
 
     try {
-      await apiFetch(`/groups/${groupId}`, { method: "DELETE" });
+      const resp = await apiFetch(`/groups/${groupId}`, { method: "DELETE" });
+      console.log(resp)
       alert("Group deleted successfully.");
       navigate("/"); // redirect to home or groups list
     } catch (err) {
       console.error("Failed to delete group:", err);
       alert("Could not delete group.");
     }
-  };
-
-  const handleDeletedTransaction = (id: number) => {
-    setTransactions((prev) => (prev ? prev.filter((t) => t.id !== id) : prev));
   };
 
   const handleCopy = async (valueToCopy: string) => {

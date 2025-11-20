@@ -87,6 +87,7 @@ def get_my_groups(
         .join(GroupMember, GroupMember.group_id == Group.id)
         .where(GroupMember.user_id == current_user.id)
         .where(GroupMember.left_at.is_(None))  # optional: skip users who left groups
+        .where(Group.deleted_at.is_(None))
     )
     return db.scalars(stmt).all()
 
