@@ -5,6 +5,7 @@ import type { Transaction, User } from "../utils/types";
 import { Loading } from "../components/Loading";
 import { SplitList } from "./SplitList";
 import { ErrorMessage } from "../components/ErrorMessage";
+
 import "./index.css"
 export default function TransactionPage() {
   const { id } = useParams<{ id: string }>();
@@ -37,7 +38,8 @@ export default function TransactionPage() {
   }, [txId]);
 
   if (!tx) return <Loading />;
-
+  
+    
   const payer_display_name = tx.payer_id === me?.id ? "You" : tx.payer_display_name
   return (
       <div className="dues-card">
@@ -48,6 +50,7 @@ export default function TransactionPage() {
       <h2>Splits</h2>
       <SplitList splits={tx.splits} me={me} payer_display_name={payer_display_name} />
       <ErrorMessage error={error} />
+      
     </div>
   );
 }

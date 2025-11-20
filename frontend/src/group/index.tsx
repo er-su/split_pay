@@ -1,12 +1,13 @@
 // src/pages/group/GroupPage.tsx
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams,useNavigate } from "react-router-dom";
 import { api, apiFetch } from "../utils/api_util";
 import type { Transaction, Group, User, Due } from "../utils/types";
 import { Loading } from "../components/Loading";
 import { CreateTransactionForm } from "./CreateTransactionForm";
 import { TransactionList } from "./TransactionList";
 import { DueList } from "./DueList";
+
 
 export default function GroupPage() {
   const groupId = useParams().id;
@@ -16,6 +17,13 @@ export default function GroupPage() {
   const [group, setGroup] = useState<Group | null>(null);
   const [dues, setDues] = useState<Due[] | null>(null);
 
+
+   const handleDeleted = (id: number) => {
+    setTransactions((prev) =>
+      prev ? prev.filter((t) => t.id !== id) : prev
+    );
+  };
+  
 	console.log(groupId)
 
 	const numberGroupId = Number(groupId)
@@ -54,6 +62,13 @@ export default function GroupPage() {
     setTransactions((prev) => (prev ? [tx, ...prev] : [tx]));
   };
 
+  const navigate = useNavigate();
+  const handleCreateTransaction = () => {
+    if (!groupId) return;
+    navigate(`/group/${groupId}/transactions/new`);
+  };
+  
+
   if (!group) return <Loading />;
 
   return (
@@ -66,11 +81,14 @@ export default function GroupPage() {
       
 
       <h2>Transactions</h2>
-      {transactions !== null ? <TransactionList transactions={transactions}/> : <p>Create some transactions!</p>}
+      {transactions !== null ? <TransactionList transactions={transactions} /> : <p>Create some transactions!</p>}
       
-
+      
       <h2>New transaction</h2>
-      <CreateTransactionForm groupId={numberGroupId} onCreated={onNewTx} />
+      <button onClick={handleCreateTransaction}>
+        Create Transaction
+      </button>
+       
 
       <button
         onClick={handleCreateInvite}

@@ -87,7 +87,6 @@ export const api = {
   createGroup: (payload: Partial<Group>) => apiFetch<Group>("/groups", { method: "POST", body: JSON.stringify(payload) }),
   getGroup: (id: number) => apiFetch<Group>(`/groups/${id}`),
   getDues: (groupId:number) => apiFetch<Due[]>(`/groups/${groupId}/dues`),
-
   fetchGroupMembers: async (groupId: number) => {
     return apiFetch<Member[]>(
       `/groups/${groupId}/members`
@@ -97,7 +96,28 @@ export const api = {
   listTransactions: (groupId: number) => apiFetch<Transaction[]>(`/groups/${groupId}/transactions`),
   createTransaction: (groupId: number, payload: Partial<TransactionInput>) =>
     apiFetch<Transaction>(`/groups/${groupId}/transactions`, { method: "POST", body: JSON.stringify(payload) }),
+
+  editTransaction: (txId: number, payload: Partial<TransactionInput>) =>
+    apiFetch<Transaction>(`/transactions/${txId}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+  deleteTransaction: (txId: number) =>
+  apiFetch<void>(`/transaction/${txId}`, {
+    method: "DELETE",
+  }),
+
+
   getTransaction: (txId: number) => apiFetch<Transaction>(`/transactions/${txId}`),
+
+  
+  
+
+
+
+
+  
+
 
 
   // users / me

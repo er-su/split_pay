@@ -6,3 +6,4 @@ venv/
 app/app.db
 node_modules/
 package-lock.json
+app/dev.db

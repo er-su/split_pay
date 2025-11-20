@@ -7,6 +7,8 @@ import TransactionPage from ".//transaction/index";
 import InviteJoinPage from "./invites/InviteJoinPage"
 import { Loading } from "./components/Loading";
 import { LogoutButton } from "./components/LogoutButton";
+import CreateTransactionPage from "./pages/CreateTransactionForm_page";
+import EditTransactionPage from "./pages/EditTransactionForm_page";
 import "./App.css"
 export default function App() {
   return (
@@ -21,6 +23,15 @@ export default function App() {
           <Route path="/group/:id" element={<GroupPage />} />
           <Route path="/transaction/:id" element={<TransactionPage />} />
           <Route path="/groups/join/:token" element={<InviteJoinPage />} />
+          <Route
+            path="/group/:groupId/transactions/new"
+            element={<CreateTransactionPage />}
+          />
+          {/* edit transaction */}
+          <Route
+            path="/transaction/:id/edit"
+            element={<EditTransactionPage />}
+          />
         </Routes>
       </Suspense>
     </div>
