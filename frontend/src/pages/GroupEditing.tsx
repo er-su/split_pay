@@ -31,7 +31,7 @@ const handleGoBack = () => {
   const handleSubmit = async (e:any) => {
     e.preventDefault();
     try {
-      const response = await api.post(
+      const response = await api.put(
         `/groups/${groupid}`, // replace with your API URL
         formData,
         { headers: { "Content-Type": "application/json" } }

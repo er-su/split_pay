@@ -9,6 +9,7 @@ import { Loading } from "./components/Loading";
 import { LogoutButton } from "./components/LogoutButton";
 import CreateTransactionPage from "./pages/CreateTransactionForm_page";
 import EditTransactionPage from "./pages/EditTransactionForm_page";
+import { CreateGroupPage } from "./pages/CreateGroupPage";
 import "./App.css"
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
             path="/transaction/:id/edit"
             element={<EditTransactionPage />}
           />
+          <Route path="/groups/new" element={<CreateGroupPage />} />
         </Routes>
       </Suspense>
     </div>
