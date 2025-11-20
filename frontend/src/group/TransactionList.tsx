@@ -5,15 +5,17 @@ import { TransactionCard } from "./TransactionCard";
 type Props = {
   transactions: Transaction[];
   onDeleted?: (id: number) => void;
+   isAdmin: boolean;
+  currentUserId: number | null;
 };
 
-export const TransactionList: React.FC<Props> = ({ transactions, onDeleted }) => {
+export const TransactionList: React.FC<Props> = ({ transactions, isAdmin,currentUserId }) => {
   if (!transactions?.length) return <div>No transactions yet.</div>;
   return (
     <div>
       {transactions.map((t) => (
         // 🔹 UPDATED: forward onDeleted to each card
-        <TransactionCard key={t.id} tx={t} onDeleted={onDeleted} />
+        <TransactionCard key={t.id} tx={t} isAdmin={isAdmin} currentUserId={currentUserId} />
       ))}
     </div>
   );

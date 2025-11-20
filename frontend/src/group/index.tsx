@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams,useNavigate } from "react-router-dom";
 import { api, apiFetch } from "../utils/api_util";
-import type { Transaction, Group, User, Due } from "../utils/types";
+import type { Transaction, Group, User, Due,Member } from "../utils/types";
 import { Loading } from "../components/Loading";
 import { CreateTransactionForm } from "./CreateTransactionForm";
 import { TransactionList } from "./TransactionList";
@@ -16,14 +16,28 @@ export default function GroupPage() {
   const [transactions, setTransactions] = useState<Transaction[] | null>(null);
   const [group, setGroup] = useState<Group | null>(null);
   const [dues, setDues] = useState<Due[] | null>(null);
-
+   const [me, setMe] = useState<User | null>(null);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
    const handleDeleted = (id: number) => {
     setTransactions((prev) =>
       prev ? prev.filter((t) => t.id !== id) : prev
     );
   };
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async (valueToCopy:any) => {
+    try {
+      await navigator.clipboard.writeText(valueToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy: ", err);
+    }
+  };
+
   
+
 	console.log(groupId)
 
 	const numberGroupId = Number(groupId)
@@ -34,22 +48,47 @@ export default function GroupPage() {
         { method: "POST" }
       );
       setInviteLink(res.invite_link);
+      handleCopy(res.invite_link);
     } catch (err) {
       console.error("Failed to create invite:", err);
       alert("Could not create invite link.");
     }
+    
   };
 
   const load = async () => {
     setError(null);
+    
     try {
-      const [g, txs, dues] = await Promise.all([api.getGroup(numberGroupId), api.listTransactions(numberGroupId), api.getDues(numberGroupId)]);
-      setGroup(g);
-      setTransactions(txs);
-      setDues(dues)
-    } catch (err) {
-      setError(err);
-    }
+    // 🔹 fetch everything in parallel
+    const [g, txs, dues, meRes, membersRes] = await Promise.all([
+      api.getGroup(numberGroupId),
+      api.listTransactions(numberGroupId),
+      api.getDues(numberGroupId),
+      api.getMe(),
+      api.fetchGroupMembers(numberGroupId),
+    ]);
+
+    setGroup(g);
+    setTransactions(txs);
+    setDues(dues);
+    setMe(meRes);
+    setMembers(membersRes || []);
+
+    // 🔹 find this user's membership in the group
+    const membership = membersRes.find((m) => m.user_id === meRes.id);
+    setIsAdmin(!!membership?.is_admin);
+  } catch (err) {
+    setError(err);
+  }
+    // try {
+    //   const [g, txs, dues] = await Promise.all([api.getGroup(numberGroupId), api.listTransactions(numberGroupId), api.getDues(numberGroupId)]);
+    //   setGroup(g);
+    //   setTransactions(txs);
+    //   setDues(dues)
+    // } catch (err) {
+    //   setError(err);
+    // }
   };
 
   useEffect(() => {
@@ -81,7 +120,7 @@ export default function GroupPage() {
       
 
       <h2>Transactions</h2>
-      {transactions !== null ? <TransactionList transactions={transactions} /> : <p>Create some transactions!</p>}
+      {transactions !== null ? <TransactionList transactions={transactions}isAdmin={isAdmin} currentUserId={me?.id ?? null} /> : <p>Create some transactions!</p>}
       
       
       <h2>New transaction</h2>
@@ -89,14 +128,14 @@ export default function GroupPage() {
         Create Transaction
       </button>
        
-
+    {isAdmin ?(
       <button
         onClick={handleCreateInvite}
         className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
       >
         Create Invite Link
-      </button>
-
+      </button>):(<p>You must be an admin to send invite to other people</p>)
+      }
       {inviteLink && (
         <div className="mt-3 p-3 bg-gray-100 rounded">
           <p className="text-sm">Share this link:</p>
