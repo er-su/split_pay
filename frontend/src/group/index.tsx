@@ -124,7 +124,7 @@ export default function GroupPage() {
       {/* User Dues */}
       <h2>User Dues</h2>
       {dues !== null ? (
-        <DueList dues={dues} currency={group.base_currency} />
+         <DueList dues={dues} currency={group.base_currency} isAdmin={isAdmin} numberGroupId={ numberGroupId} />
       ) : (
         <p>No other members yet!</p>
       )}
