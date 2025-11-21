@@ -31,8 +31,7 @@ export default function GroupPage() {
     if (!confirmed) return;
 
     try {
-      const resp = await apiFetch(`/groups/${groupId}`, { method: "DELETE" });
-      console.log(resp)
+      await apiFetch(`/groups/${groupId}`, { method: "DELETE" });
       alert("Group deleted successfully.");
       navigate("/"); // redirect to home or groups list
     } catch (err) {

@@ -72,6 +72,10 @@ export async function apiFetch<T = any>(path: string, opts: FetchOptions = {}): 
     }
   }
 
+  if (res.status === 204) {
+    return {} as T; // empty object for 204
+  }
+
   if (contentType.includes("application/json")) {
     return res.json();
   }
