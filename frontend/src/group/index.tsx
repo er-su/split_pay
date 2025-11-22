@@ -110,6 +110,17 @@ export default function GroupPage() {
     <div className="p-6">
       <h1>{group.name}</h1>
       <div style={{ marginBottom: 16 }}>{group.description}</div>
+      
+      {/* Edit Group Button */}
+      {isAdmin && (
+        <button
+          onClick={() => navigate(`/group/${groupId}/edit`)}
+          className="mb-4 ml-2 px-4 py-2 bg-yellow-500 text-white rounded"
+      >
+      Edit Group
+      </button>
+      )}
+
 
       {/* Delete Group Button */}
       {isAdmin && (
@@ -124,7 +135,7 @@ export default function GroupPage() {
       {/* User Dues */}
       <h2>User Dues</h2>
       {dues !== null ? (
-         <DueList dues={dues} currency={group.base_currency} isAdmin={isAdmin} numberGroupId={ numberGroupId} />
+        <DueList dues={dues} currency={group.base_currency} />
       ) : (
         <p>No other members yet!</p>
       )}
