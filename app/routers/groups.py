@@ -359,6 +359,7 @@ def remove_member(
 
     gm.left_at = datetime.now(timezone.utc) # type: ignore
     db.flush()
+    db.commit()
 
     active_count = (
         db.query(GroupMember)
