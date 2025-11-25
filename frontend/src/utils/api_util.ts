@@ -96,6 +96,19 @@ export const api = {
       `/groups/${groupId}/members`
     );
   },
+  editGroup: (id: number, payload: Partial<Group>) =>
+    apiFetch<Group>(`/groups/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+
+  deleteGroupMember: (groupId: number, userId: number) =>
+    apiFetch<void>(`/groups/${groupId}/members/${userId}`, {
+      method: "DELETE",
+    }),
+
+  ArchiveGroup: (groupId:number ) => apiFetch<Group>(`/groups/${groupId}/archive`, { method: "POST" }),
+  UnarchiveGroup: (groupId:number) => apiFetch<Group>(`/groups/${groupId}/unarchive`, { method: "POST" }),
   // Transactions within a group 
   listTransactions: (groupId: number) => apiFetch<Transaction[]>(`/groups/${groupId}/transactions`),
   createTransaction: (groupId: number, payload: Partial<TransactionInput>) =>
@@ -113,9 +126,6 @@ export const api = {
 
 
   getTransaction: (txId: number) => apiFetch<Transaction>(`/transactions/${txId}`),
-
-  
-  
 
 
 

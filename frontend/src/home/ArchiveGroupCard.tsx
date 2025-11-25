@@ -1,14 +1,14 @@
 import React from "react";
 import type { Group, User,Member } from "../utils/types";
 import { useNavigate } from "react-router-dom";
-import { api,apiFetch } from "../utils/api_util";
+import { api } from "../utils/api_util";
 import { useEffect,useState}   from "react";
 
 type GroupInfo = { group: Group, me: User | null};
 
  
 
-export const GroupCard: React.FC<GroupInfo> = ({ group, me }) => {
+export const ArchiveGroupCard: React.FC<GroupInfo> = ({ group, me }) => {
   const nav = useNavigate();
   const creator_name = me?.id == group.created_by ? "You" : group.creator_display_name
   const goToEdit = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -55,25 +55,25 @@ const [isAdmin, setIsAdmin] = useState(false);
   }, [group.id]);
 
   // 🔴 If archived, don't render anything
-  if (isArchived === true) {
+  if (isArchived === false) {
     return null;
   }
 
-  const startConfirmArchive = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const startConfirmUnArchive = (e: React.MouseEvent<HTMLButtonElement>) => {
       e.stopPropagation();
       setConfirming(true);
     };
   
-    const cancelArchive = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const cancelUnarchive = (e: React.MouseEvent<HTMLButtonElement>) => {
       e.stopPropagation();
       setConfirming(false);
     };
   
-    const confirmArchive = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    const confirmUnarchive = async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.stopPropagation();
       try {
         setBusy(true);
-        await api.ArchiveGroup(group.id);
+        await api.UnarchiveGroup(group.id);
        // onDeleted?.(tx.id); // parent removes it from the list
        
       } catch (err) {
@@ -85,34 +85,8 @@ const [isAdmin, setIsAdmin] = useState(false);
       }
     };
 
-   const handleDeleteGroup = async (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.stopPropagation();
-      if (!group.id) return;
-  
-      const confirmed = window.confirm("Are you sure you want to delete this group?");
-      if (!confirmed) return;
-  
-      try {
-        await apiFetch(`/groups/${group.id}`, { method: "DELETE" });
-        alert("Group deleted successfully.");
-       
-      } catch (err) {
-        console.error("Failed to delete group:", err);
-        alert("Could not delete group.");
-      }
-      finally{
-        window.location.reload();
-      }
-    };
-
-
-    const handleEdit = async (e: React.MouseEvent<HTMLButtonElement>) =>{
-        e.stopPropagation();
-        nav(`/group/${group.id}/edit`)
-    }
 
   return (
-   
     <div
       onClick={() => nav(`/group/${group.id}`)}
       style={{
@@ -132,49 +106,21 @@ const [isAdmin, setIsAdmin] = useState(false);
        {isAdmin && (
         !confirming ? (
           <div style={{ display: "flex", gap: 8 }}>
-            {/* <button onClick={goToEdit}>Edit</button> */}
-            <button onClick={startConfirmArchive}>Archive</button>
+            
+            <button onClick={startConfirmUnArchive}>Unarchive</button>
           </div>
         ) : (
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <span>Archive?</span>
-            <button onClick={confirmArchive} disabled={busy}>
+            <span>Unarchive?</span>
+            <button onClick={confirmUnarchive} disabled={busy}>
               {busy ? "Deleting…" : "Yes"}
             </button>
-            <button onClick={cancelArchive} disabled={busy}>
+            <button onClick={cancelUnarchive} disabled={busy}>
               No
             </button>
           </div>
         )
          )}
-  
-  
-      
-      {/* Edit Group Button */}
-      {isAdmin && (
-        <button
-          onClick={handleEdit}
-          
-      >
-      Edit Group
-      </button>
-      )}
-
-
-      {/* Delete Group Button */}
-      {isAdmin && (
-        <button
-          onClick={handleDeleteGroup}
-          
-        >
-          Delete Group
-        </button>
-      )}
-    
     </div>
-
-  
-    
   );
 };
-

@@ -7,12 +7,12 @@ import { ErrorMessage } from "../components/ErrorMessage";
 import { GroupList } from "./GroupList";
 // import { CreateGroupForm } from "./CreateGroupForm";
 import { Link } from "react-router-dom";
-
+import { ArchiveGroupList } from "./ArchiveGroupList";
 export default function HomePage() {
   const [groups, setGroups] = useState<Group[] | null>(null);
 	const [me, setMe] = useState<User | null>(null);
   const [error, setError] = useState<any>(null);
-
+  
   const load = async () => {
     setError(null);
     try {
@@ -45,6 +45,8 @@ export default function HomePage() {
       )}
       {groups === null ? <p>Create some groups!</p> : <GroupList groups={groups} me={me} />}   
       {/* <CreateGroupForm onCreated={(g) => setGroups((prev) => (prev ? [g, ...prev] : [g]))} /> */}
+       <h1>Archived Groups</h1>
+       <ArchiveGroupList groups={groups} me={me} />
       <Link to="/groups/new">Create a group</Link>
 			<p>Info on you {me?.display_name} {me?.email}</p>
     </div>

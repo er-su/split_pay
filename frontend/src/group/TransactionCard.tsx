@@ -8,8 +8,9 @@ type Props = {
   onDeleted?: (id: number) => void;
    isAdmin: boolean;
   currentUserId: number | null;
+  isArchived: boolean;
 };
-export const TransactionCard: React.FC<Props> = ({ tx, isAdmin,currentUserId }) => {
+export const TransactionCard: React.FC<Props> = ({ tx, isAdmin,currentUserId,isArchived }) => {
 //export const TransactionCard: React.FC<{ tx: Transaction }> = ({ tx}) => {
   const nav = useNavigate();
    const [confirming, setConfirming] = useState(false);
@@ -22,7 +23,7 @@ export const TransactionCard: React.FC<Props> = ({ tx, isAdmin,currentUserId }) 
   const isCreator =
     currentUserId != null && tx.creator_id === currentUserId;
 
-  const canEditOrDelete = isAdmin || isCreator;
+  const canEditOrDelete = (isAdmin || isCreator) && !isArchived;
     const goToEdit = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation(); // 👈 prevent card's onClick from firing
     nav(`/transaction/${tx.id}/edit`);

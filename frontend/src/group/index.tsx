@@ -6,7 +6,7 @@ import type { Transaction, Group, User, Due, Member } from "../utils/types";
 import { Loading } from "../components/Loading";
 import { TransactionList } from "./TransactionList";
 import { DueList } from "./DueList";
-
+import { MemberList } from "./MemberList";
 export default function GroupPage() {
   const groupId = useParams().id;
   const navigate = useNavigate();
@@ -101,7 +101,7 @@ export default function GroupPage() {
   const onNewTransaction = (tx: Transaction) => {
     setTransactions((prev) => (prev ? [tx, ...prev] : [tx]));
   };
-
+  const isArchived=group?.is_archived
   // ---------------- Render ----------------
 
   if (!group) return <Loading />;
@@ -111,31 +111,17 @@ export default function GroupPage() {
       <h1>{group.name}</h1>
       <div style={{ marginBottom: 16 }}>{group.description}</div>
       
-      {/* Edit Group Button */}
-      {isAdmin && (
-        <button
-          onClick={() => navigate(`/group/${groupId}/edit`)}
-          className="mb-4 ml-2 px-4 py-2 bg-yellow-500 text-white rounded"
-      >
-      Edit Group
-      </button>
+     
+      <h2>Members</h2>
+      {dues !== null ? (
+        <MemberList Member={members} isAdmin={isAdmin} numberGroupId={numberGroupId} isArchived={group.is_archived} />
+      ) : (
+        <p>No other members yet!</p>
       )}
-
-
-      {/* Delete Group Button */}
-      {isAdmin && (
-        <button
-          onClick={handleDeleteGroup}
-          className="mb-4 px-4 py-2 bg-red-600 text-white rounded"
-        >
-          Delete Group
-        </button>
-      )}
-
       {/* User Dues */}
       <h2>User Dues</h2>
       {dues !== null ? (
-        <DueList dues={dues} currency={group.base_currency} />
+        <DueList dues={dues} currency={group.base_currency}  isAdmin={isAdmin} numberGroupId={numberGroupId} />
       ) : (
         <p>No other members yet!</p>
       )}
@@ -147,6 +133,7 @@ export default function GroupPage() {
           transactions={transactions}
           isAdmin={isAdmin}
           currentUserId={me?.id ?? null}
+          isArchived={group.is_archived}
         />
       ) : (
         <p>Create some transactions!</p>
@@ -154,10 +141,10 @@ export default function GroupPage() {
 
       {/* New Transaction Button */}
       <h2>New transaction</h2>
-      <button onClick={handleCreateTransaction}>Create Transaction</button>
+       {isArchived ? null : <button onClick={handleCreateTransaction}>Create Transaction</button>}
 
       {/* Invite Link */}
-      {isAdmin ? (
+      {isAdmin && !isArchived ?  (
         <button
           onClick={handleCreateInvite}
           className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"

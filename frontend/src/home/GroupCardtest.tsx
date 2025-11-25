@@ -33,7 +33,7 @@ type GroupInfo = {
 export const GroupCard: React.FC<GroupInfo> = ({ group, me, onDeleted }) => {
   const nav = useNavigate();
   const [busy, setBusy] = useState(false);
-
+  
   const creator_name = me?.id === group.created_by ? "You" : group.creator_display_name;
 
   // --- Check if current user is admin ---
