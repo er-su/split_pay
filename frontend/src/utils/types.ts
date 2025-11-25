@@ -12,6 +12,7 @@ export interface Group {
   created_by: number;
   creator_display_name?: string;
   location_name?: number;
+  is_archived: boolean;
 }
 
 export interface Member {

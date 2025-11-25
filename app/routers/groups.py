@@ -191,7 +191,7 @@ def get_current_dues(
 ):
     group = db.get(Group, group_id)
     _require_member(db, group_id, current_user.id)
-    _require_active_group(group, True)
+    _require_active_group(group, False)
 
     dues = {(membership.user_id) : [Decimal("0.00"), membership.user.display_name] for membership in group.members if membership.user_id != current_user.id} # type: ignore
 

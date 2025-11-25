@@ -55,6 +55,7 @@ class GroupOut(BaseModel):
     created_by: Optional[int]
     creator_display_name: Optional[str]
     location_name: Optional[str]
+    is_archived: bool
 
     model_config = ConfigDict(from_attributes=True)
 
