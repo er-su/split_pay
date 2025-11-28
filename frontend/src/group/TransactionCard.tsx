@@ -63,12 +63,12 @@ export const TransactionCard: React.FC<Props> = ({ tx, isAdmin,currentUserId,isA
     {/* Only show buttons if user is admin OR creator */}
       {canEditOrDelete && (
         !confirming ? (
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="center">
             <button onClick={goToEdit}>Edit</button>
             <button onClick={startConfirmDelete}>Delete</button>
           </div>
         ) : (
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <div className="center">
             <span>Delete?</span>
             <button onClick={confirmDelete} disabled={busy}>
               {busy ? "Deleting…" : "Yes"}

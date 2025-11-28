@@ -47,7 +47,7 @@ export default function HomePage() {
       {/* <CreateGroupForm onCreated={(g) => setGroups((prev) => (prev ? [g, ...prev] : [g]))} /> */}
        <h1>Archived Groups</h1>
        <ArchiveGroupList groups={groups} me={me} />
-      <Link to="/groups/new">Create a group</Link>
+      <Link to="/groups/new" className="home-link">Create a group</Link>
 			<p>Info on you {me?.display_name} {me?.email}</p>
     </div>
   );

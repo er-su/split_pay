@@ -113,7 +113,9 @@ const [isAdmin, setIsAdmin] = useState(false);
 
   return (
    
-    <div
+   
+   
+    <div 
       onClick={() => nav(`/group/${group.id}`)}
       style={{
         border: "1px solid #ddd",
@@ -129,14 +131,15 @@ const [isAdmin, setIsAdmin] = useState(false);
       <div style={{ fontSize: 13, color: "#666" }}>{group.base_currency}</div>
       <div style={{ fontSize: 13, color: "#666" }}>{group.description ? group.description : "No description"}</div>
      {/* <button onClick={goToEdit}>Edit</button> */}
+      <div className="center">
        {isAdmin && (
         !confirming ? (
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="center">
             {/* <button onClick={goToEdit}>Edit</button> */}
             <button onClick={startConfirmArchive}>Archive</button>
           </div>
         ) : (
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <div className="center">
             <span>Archive?</span>
             <button onClick={confirmArchive} disabled={busy}>
               {busy ? "Deleting…" : "Yes"}
@@ -147,7 +150,7 @@ const [isAdmin, setIsAdmin] = useState(false);
           </div>
         )
          )}
-  
+        </div>
   
       
       {/* Edit Group Button */}
@@ -160,7 +163,7 @@ const [isAdmin, setIsAdmin] = useState(false);
       </button>
       )}
 
-
+      <div className="center">
       {/* Delete Group Button */}
       {isAdmin && (
         <button
@@ -170,7 +173,7 @@ const [isAdmin, setIsAdmin] = useState(false);
           Delete Group
         </button>
       )}
-    
+    </div>
     </div>
 
   

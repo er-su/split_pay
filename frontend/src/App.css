@@ -108,10 +108,37 @@ p {
   color: #000000 !important;   /* pitch black */
 }
 
-.home-link {
+/* .home-link {
   color: #ffffff;
   padding-right: 1rem;
+} */
+/* generic: centers whatever you put inside (buttons, links, etc.) */
+
+
+.center {
+  text-align: center;
 }
+ /*home link for css*/
+.home-link{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 8px 14px;
+  border-radius: 10px;
+
+  background: #ffffff;
+  color: #000000;
+  text-decoration: none;
+
+  border: 1px solid rgba(0,0,0,0.12);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.home-link:hover { filter: brightness(0.97); }
+.home-link:active { transform: translateY(1px); }
+
+
 
 
 

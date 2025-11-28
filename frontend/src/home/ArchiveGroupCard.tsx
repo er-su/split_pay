@@ -105,12 +105,12 @@ const [isAdmin, setIsAdmin] = useState(false);
      {/* <button onClick={goToEdit}>Edit</button> */}
        {isAdmin && (
         !confirming ? (
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="center">
             
             <button onClick={startConfirmUnArchive}>Unarchive</button>
           </div>
         ) : (
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <div className="center">
             <span>Unarchive?</span>
             <button onClick={confirmUnarchive} disabled={busy}>
               {busy ? "Deleting…" : "Yes"}

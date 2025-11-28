@@ -47,12 +47,12 @@ return(
         {/* Only show buttons if user is admin OR creator */}
       {canEditOrDelete && !memberAdmin && (
         !confirming ?  (
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="center">
             {/* <button onClick={goToEdit}>Edit</button> button to edit or delete */}
             <button onClick={startConfirmDelete}>Delete</button>
           </div>
         ) : (
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <div className="center">
             <span>Delete?</span>
             <button onClick={confirmDelete} disabled={busy}>
               {busy ? "Deleting…" : "Yes"}
