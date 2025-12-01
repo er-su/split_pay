@@ -1,10 +1,26 @@
 import { Link } from "react-router-dom";
-
+import { useLocation } from "react-router-dom";
 interface ErrorPageProps {
   message?: string;
 }
 
-export default function ErrorPage({ message }: ErrorPageProps) {
+export default function ErrorPage() {
+  // To get The actual Error Message When Shown Here.
+  const location = useLocation();
+  const state = location.state as ErrorPageProps | null;
+
+  const message = state?.message ?? "Something went wrong while fetching the data.";
+  // Parse the string.
+  function parseMessage(raw?: string) {
+  if (!raw) return raw;
+
+  try {
+    const obj = JSON.parse(raw) as { detail?: string };
+    return obj.detail ?? raw;
+  } catch {
+    return raw;
+  }
+}
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-blue-50 px-6 py-12">
       
@@ -29,7 +45,8 @@ export default function ErrorPage({ message }: ErrorPageProps) {
 
       {/* Error Subheading */}
       <p className="text-xl text-center text-gray-700 mb-6 max-w-lg">
-        {message || "Something went wrong while fetching the data."}
+         {parseMessage(message) || "Something went wrong while fetching the data."} 
+        {/* Something went wrong while fetching the data. */}
       </p>
 
       {/* Gradient Divider */}

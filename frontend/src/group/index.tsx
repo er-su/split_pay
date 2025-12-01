@@ -37,6 +37,7 @@ export default function GroupPage() {
       alert("Group deleted successfully.");
       navigate("/"); // redirect to home or groups list
     } catch (err) {
+      
       navigate("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
     }
   };
