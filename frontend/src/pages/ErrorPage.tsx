@@ -37,10 +37,10 @@ export default function ErrorPage({ message }: ErrorPageProps) {
 
       {/* Action Button */}
       <Link
-        to="/groups"
+        to="/"
         className="px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold shadow-lg hover:bg-blue-700 transition"
       >
-        Go Back to Groups
+        Go Back to Home
       </Link>
     </div>
   );

@@ -90,7 +90,8 @@ export default function GroupPage() {
       const membership = membersRes.find((m) => m.user_id === meRes.id);
       setIsAdmin(!!membership?.is_admin);
     } catch (err) {
-      setError(err);
+      //setError(err);
+      navigate("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
     }
   };
 

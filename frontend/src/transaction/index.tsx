@@ -5,8 +5,9 @@ import type { Transaction, User } from "../utils/types";
 import { Loading } from "../components/Loading";
 import { SplitList } from "./SplitList";
 import { ErrorMessage } from "../components/ErrorMessage";
-
+import { useNavigate } from "react-router-dom";
 export default function TransactionPage() {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const txId = Number(id);
   const [tx, setTx] = useState<Transaction | null>(null);
@@ -30,7 +31,7 @@ export default function TransactionPage() {
         }
         setMe(me)
       } catch (err) {
-        setError(err);
+        navigate("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
       }
     };
     if (txId) load();
