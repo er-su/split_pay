@@ -1,63 +1,120 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface ConfirmButtonProps {
   buttonText: string;
   confirmText: string;
-  onConfirm: (e: any) => void | Promise<void>;  // callback executed on confirm
+  onConfirm: () => void | Promise<void>;
   buttonClassName?: string;
 }
 
+/**
+ * ConfirmButton
+ * - Renders the trigger inline (stops propagation)
+ * - Renders modal as a portal to document.body (avoids stacking/hover issues)
+ * - Overlay catches clicks to close, inner dialog stops propagation
+ * - Disables body scroll while open, supports Escape to close
+ */
 export default function ConfirmButton({
   buttonText,
   confirmText,
   onConfirm,
-  buttonClassName
+  buttonClassName,
 }: ConfirmButtonProps) {
   const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const handleConfirm = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onConfirm(); // perform delete or other action
-    setOpen(false);
+  // handle ESC key and disable body scroll while open
+  useEffect(() => {
+    if (!open) return;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open]);
+
+  const handleConfirm = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    try {
+      setBusy(true);
+      await onConfirm();
+    } finally {
+      setBusy(false);
+      setOpen(false);
+    }
   };
 
   return (
     <>
+      {/* Trigger button: stops propagation so parent onClick doesn't run */}
       <button
-        className={`px-4 py-2 rounded-lg ${buttonClassName ?? ""}`}
+        type="button"
+        className={`px-4 py-2 rounded-lg ${buttonClassName ?? "bg-red-600 text-white hover:bg-red-700"}`}
         onClick={(e) => {
-          e.stopPropagation()
-          setOpen(true)}}
+          e.stopPropagation();
+          setOpen(true);
+        }}
       >
         {buttonText}
       </button>
 
-      {open && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm">
-            <h2 className="text-lg font-semibold mb-4">{confirmText}</h2>
+      {/* Portal overlay/modal - rendered into document.body */}
+      {open &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            {/* backdrop - catches clicks to close */}
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={(e) => {
+                // stop propagation to prevent parent handlers and close modal
+                e.stopPropagation();
+                setOpen(false);
+              }}
+            />
 
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setOpen(false)
-                }}
-                className="px-3 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition"
-              >
-                Cancel
-              </button>
+            {/* dialog - captures clicks so they don't reach backdrop/underlying UI */}
+            <div
+              role="dialog"
+              aria-modal="true"
+              className="relative bg-white rounded-xl shadow-xl p-6 w-full max-w-sm pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-lg font-semibold mb-3 text-gray-900">{confirmText}</h2>
 
-              <button
-                onClick={handleConfirm}
-                className="px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition"
-              >
-                Confirm
-              </button>
+              <div className="flex justify-end gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpen(false);
+                  }}
+                  className="px-3 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleConfirm}
+                  disabled={busy}
+                  className="px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {busy ? "Working…" : "Confirm"}
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 }
