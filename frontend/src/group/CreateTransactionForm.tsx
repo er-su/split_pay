@@ -128,12 +128,13 @@ export const CreateTransactionForm: React.FC<Props> = ({ groupId, onCreated }) =
       {/* Memo */}
       <div>
         <label>
-          Memo
+           Memo <br></br>
           <textarea
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
-            style={{ marginLeft: 8, verticalAlign: "top" }}
-            placeholder="Optional"
+            style={{ marginLeft: 8, verticalAlign: "top"}}
+            className="border-2 border-gray-500 rounded p-2 w-full" rows={3}
+            placeholder="(Optional)"
           />
         </label>
       </div>

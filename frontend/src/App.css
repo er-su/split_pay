@@ -30,7 +30,7 @@ div[style*="cursor: pointer"][style*="margin-bottom: 8px"] > div {
 body {
   margin: 0 !important;
   font-family: Arial, Helvetica, sans-serif !important;
-  background-color: #579267; /* dark green */
+  background-color: #f0f2f3; /* dark green */
 }
 
 /* Assume your React page renders a top-level div that contains the form */
@@ -58,7 +58,11 @@ body > div h1 {
   margin-top: 0 !important;
   margin-bottom: 20px !important;
   font-size: 1.6rem !important;
-  color: #000 !important;
+  color: #000000 !important;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-color: #0b7658;
 }
 
 /* Space between each row div inside the form */
@@ -130,8 +134,8 @@ p {
   padding: 8px 14px;
   border-radius: 10px;
 
-  background: #ffffff;
-  color: #000000;
+  background: #2da93d;
+  color: #ffffff;
   text-decoration: none;
 
   border: 1px solid rgba(0,0,0,0.12);
@@ -140,6 +144,19 @@ p {
 
 .home-link:hover { filter: brightness(0.97); }
 .home-link:active { transform: translateY(1px); }
+
+.logout-link{
+  margin-left: 6 px;
+  background-color: #2daa3d;
+  color: rgb(0, 0, 0);
+}
+
+.logout-link:hover { filter: brightness(0.97); }
+
+#nav{
+  display: flex;
+  align-items: center;
+}
 
 
 

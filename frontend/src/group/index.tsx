@@ -37,6 +37,7 @@ export default function GroupPage() {
     } catch (err) {
       console.error("Failed to delete group:", err);
       alert("Could not delete group.");
+      navigate("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
     }
   };
 
@@ -108,26 +109,36 @@ export default function GroupPage() {
 
   return (
     <div className="p-6">
-      <h1>{group.name}</h1>
+        <h1>{group.name}</h1>
       <div style={{ marginBottom: 16 }}>{group.description}</div>
-      
+      <hr></hr>
+      <br></br>
      
-      <h2>Members</h2>
+      <h2 className="font-bold">Members</h2>
       {dues !== null ? (
         <MemberList Member={members} isAdmin={isAdmin} numberGroupId={numberGroupId} isArchived={group.is_archived} />
       ) : (
         <p>No other members yet!</p>
       )}
+
+      <br></br>
+      <hr></hr>
+      <br></br>
+
       {/* User Dues */}
-      <h2>User Dues</h2>
+      <h2 className="font-bold">User Dues</h2>
       {dues !== null ? (
         <DueList dues={dues} currency={group.base_currency}  isAdmin={isAdmin} numberGroupId={numberGroupId} />
       ) : (
         <p>No other members yet!</p>
       )}
 
+      <br></br>
+      <hr></hr>
+      <br></br>
+
       {/* Transactions */}
-      <h2>Transactions</h2>
+      <h2 className="font-bold">Transactions</h2>
       {transactions !== null ? (
         <TransactionList
           transactions={transactions}
@@ -140,14 +151,14 @@ export default function GroupPage() {
       )}
 
       {/* New Transaction Button */}
-      <h2>New transaction</h2>
-       {isArchived ? null : <button onClick={handleCreateTransaction}>Create Transaction</button>}
+      {/* <h2>New transaction</h2> */}
+       {isArchived ? null : <button onClick={handleCreateTransaction} className="home-link">Create Transaction</button>}
 
       {/* Invite Link */}
       {isAdmin && !isArchived ?  (
         <button
           onClick={handleCreateInvite}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+          className="mt-4 px-4 py-2 bg-blue-500 rounded bottom-type-button" 
         >
           Create Invite Link
         </button>

@@ -17,7 +17,9 @@ export default function App() {
     <div>
       <nav style={{ padding: 12, borderBottom: "1px solid #eee" }}>
         <Link to="/" className="home-link">Home</Link>
+        <span className="logout-link">
         <LogoutButton />
+        </span>
       </nav>
       <Suspense fallback={<Loading />}>
         <Routes>

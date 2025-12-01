@@ -43,12 +43,18 @@ export default function HomePage() {
           }
         />
       )}
-      {groups === null ? <p>Create some groups!</p> : <GroupList groups={groups} me={me} />}   
+      {groups === null ? <p>Create some groups!</p> : <GroupList groups={groups} me={me} />}
+      <br></br>
+      <hr></hr> 
+      <br></br> 
       {/* <CreateGroupForm onCreated={(g) => setGroups((prev) => (prev ? [g, ...prev] : [g]))} /> */}
        <h1>Archived Groups</h1>
        <ArchiveGroupList groups={groups} me={me} />
+       <br></br> 
       <Link to="/groups/new" className="home-link">Create a group</Link>
-			<p>Info on you {me?.display_name} {me?.email}</p>
+      <br></br> 
+      <br></br> 
+			<p>Account Info <br></br>{me?.display_name} {me?.email}</p>
     </div>
   );
 }
