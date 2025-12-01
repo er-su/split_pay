@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../utils/api_util";
 import type { Member, Transaction } from "../utils/types";
+import CalculatorWidget from "@/components/CalculatorWidget";
 
 type SplitInput = {
   user_id: number;
@@ -131,64 +132,96 @@ const EditTransactionPage: React.FC = () => {
   if (loading) return <div>Loading…</div>;
 
   return (
-    <form onSubmit={submit} style={{ marginBottom: 16 }}>
-      <h3>Edit Transaction</h3>
+    <>
+    <CalculatorWidget />
+    <form onSubmit={submit} className="container mx-auto space-y-6">
+      <h1 className="text-4xl text-green-900 font-bold text-center">Edit Transaction</h1>
 
       {/* Title */}
-      <div>
-        <label>
+      <div className="flex flex-col">
+        <label className="text-gray-700 font-medium mb-1">
           Title
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            style={{ marginLeft: 8 }}
+            className="mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 w-full"
           />
         </label>
       </div>
 
       {/* Memo */}
-      <div>
-        <label>
+      <div className="flex flex-col">
+        <label className="text-gray-700 font-medium mb-1">
           Memo
           <textarea
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
-            style={{ marginLeft: 8, verticalAlign: "top" }}
-            placeholder="Optional"
+            className=" mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 w-full"
           />
         </label>
       </div>
 
       {/* Payer */}
-      <div>
-        <label>
+      <div className="flex flex-col">
+        <label className="text-gray-700 font-medium mb-1">
           Payer
-          <select
-            value={payerId}
-            onChange={(e) => setPayerId(Number(e.target.value))}
-            required
-            style={{ marginLeft: 8 }}
-          >
-            <option value="">Select payer</option>
+        </label>
+        <select
+          value={payerId}
+          onChange={(e) => setPayerId(Number(e.target.value))}
+          required
+          className="
+            mt-1
+            block w-full
+            rounded-md
+            border border-gray-300
+            bg-white
+            px-4 py-2
+            text-gray-700
+            shadow-sm
+            outline-none
+            transition
+            hover:border-gray-400
+            focus:border-blue-600
+            focus:ring-2 focus:ring-blue-600
+            cursor-pointer
+          "
+        >
+          <option value="" disabled>--Required--</option>
             {members.map((m) => (
               <option key={m.user_id} value={m.user_id}>
                 {m.display_name || `User ${m.user_id}`}
               </option>
             ))}
           </select>
-        </label>
+
       </div>
 
       {/* Currency */}
-      <div>
-        <label>
+      <div className="flex flex-col w-full">
+        <label className="text-gray-700 font-medium mb-1">
           Currency
           <select
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
             required
-            style={{ marginLeft: 8 }}
+            className="
+              mt-1
+              block w-full
+              rounded-md
+              border border-gray-300
+              bg-white
+              px-4 py-2
+              text-gray-700
+              shadow-sm
+              outline-none
+              transition
+              hover:border-gray-400
+              focus:border-blue-600
+              focus:ring-2 focus:ring-blue-600
+              cursor-pointer
+            "
           >
             {currencies.map((c) => (
               <option key={c} value={c}>
@@ -201,13 +234,14 @@ const EditTransactionPage: React.FC = () => {
 
       {/* Splits */}
       <div>
-        <h4>Splits</h4>
+        <h4 className="text-lg font-semibold text-gray-600 mb-4">Splits</h4>
         {splits.map((split, i) => (
-          <div key={i} style={{ marginBottom: 8, display: "flex", gap: 8 }}>
+          <div key={i} className="flex flex-col md:flex-row items-center gap-3 p-3 rounded-lg bg-white">
             <select
               value={split.user_id}
               onChange={(e) => updateSplit(i, "user_id", Number(e.target.value))}
               required
+              className="flex-1 border-gray-300 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select user</option>
               {members
@@ -228,6 +262,8 @@ const EditTransactionPage: React.FC = () => {
                 updateSplit(i, "amount_cents", Number(e.target.value))
               }
               required
+              className="flex-1 border-gray-300 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+
             />
 
             <input
@@ -235,26 +271,41 @@ const EditTransactionPage: React.FC = () => {
               placeholder="Note"
               value={split.note || ""}
               onChange={(e) => updateSplit(i, "note", e.target.value)}
+              className="flex-1 border-gray-300 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+
             />
 
             {splits.length > 1 && (
-              <button type="button" onClick={() => removeSplit(i)}>
+              <button type="button" onClick={() => removeSplit(i)} className="px-3 py-1 text-red-600 hover:text-white hover:bg-red-600 rounded transition">
                 ✕
               </button>
             )}
           </div>
         ))}
 
-        <button type="button" onClick={addSplit}>
+        <button type="button" onClick={addSplit} className="mt-3 px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-950 transition">
           + Add Split
         </button>
       </div>
 
-      <div style={{ marginTop: 12 }}>
-        <button type="submit" disabled={busy}>
-          {busy ? "Saving…" : "Save Changes"}
-        </button>
-      </div>
+      <button
+        type="submit"
+        disabled={busy}
+        className={`
+          w-full mx-auto block
+          px-5 py-2
+          rounded-lg font-semibold
+          text-white text-center
+          bg-green-700
+          hover:bg-green-800
+          transition-all duration-200
+          hover:scale-105 active:scale-95
+          shadow-md hover:shadow-lg
+          disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-md
+        `}
+      >
+        {busy ? "Creating…" : "Edit Transaction"}
+      </button>
 
       {error && (
         <div style={{ color: "red", marginTop: 8 }}>
@@ -262,6 +313,7 @@ const EditTransactionPage: React.FC = () => {
         </div>
       )}
     </form>
+    </>
   );
 };
 

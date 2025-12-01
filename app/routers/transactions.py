@@ -97,7 +97,8 @@ def _verify_splits(payload: CreateTransactionIn | UpdateTransactionIn, user_ids_
         user_ids_in_group.remove(split.user_id)
 
     # Ensure splits add up or account for rounding error (ignore pylance error as we verify that they are not None before passing into function)
-    if (total_split_sum.quantize(TWO_PLACES, rounding=ROUND_HALF_UP) != payload.total_amount_cents): # type: ignore
+
+    if (total_split_sum != payload.total_amount_cents): # type: ignore
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid split sums {total_split_sum} != {payload.total_amount_cents}")
     
 def _verify_update_splits(old_transaction: Transaction, payload: UpdateTransactionIn, user_ids_in_group: Set[int], payer_id: int):

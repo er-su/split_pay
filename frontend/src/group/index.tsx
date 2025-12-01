@@ -7,6 +7,8 @@ import { Loading } from "../components/Loading";
 import { TransactionList } from "./TransactionList";
 import { DueList } from "./DueList";
 import { MemberList } from "./MemberList";
+import { User as IconUser, DollarSign } from "lucide-react";
+
 export default function GroupPage() {
   const groupId = useParams().id;
   const navigate = useNavigate();
@@ -35,8 +37,7 @@ export default function GroupPage() {
       alert("Group deleted successfully.");
       navigate("/"); // redirect to home or groups list
     } catch (err) {
-      console.error("Failed to delete group:", err);
-      alert("Could not delete group.");
+      navigate("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
     }
   };
 
@@ -101,66 +102,78 @@ export default function GroupPage() {
   const onNewTransaction = (tx: Transaction) => {
     setTransactions((prev) => (prev ? [tx, ...prev] : [tx]));
   };
-  const isArchived=group?.is_archived
+  const isArchived = group?.is_archived
   // ---------------- Render ----------------
 
   if (!group) return <Loading />;
 
   return (
     <div className="p-6">
-      <h1>{group.name}</h1>
-      <div style={{ marginBottom: 16 }}>{group.description}</div>
-      
-     
-      <h2>Members</h2>
-      {dues !== null ? (
-        <MemberList Member={members} isAdmin={isAdmin} numberGroupId={numberGroupId} isArchived={group.is_archived} />
-      ) : (
-        <p>No other members yet!</p>
-      )}
-      {/* User Dues */}
-      <h2>User Dues</h2>
-      {dues !== null ? (
-        <DueList dues={dues} currency={group.base_currency}  isAdmin={isAdmin} numberGroupId={numberGroupId} />
-      ) : (
-        <p>No other members yet!</p>
-      )}
+      <h1 className="text-4xl font-bold mb-2 text-center">{group.name}</h1>
+      <div className="text-base text-muted-foreground text-center mt-2">{group.description}</div>
+      <div className="w-full flex justify-center gap-3 mt-2">
+        <div className="flex gap-1 text-muted-foreground content-center"><IconUser size={20} />{group.creator_display_name}</div>
+        <div className="flex gap-0.5 text-muted-foreground content-center"><DollarSign size={20} />{group.base_currency}</div>
+      </div>
+      {/* {group.base_currency}
+      {group.creator_display_name}
+      {group.is_archived} */}
+      <hr className="my-4 border-gray-200" />
 
-      {/* Transactions */}
-      <h2>Transactions</h2>
-      {transactions !== null ? (
-        <TransactionList
-          transactions={transactions}
-          isAdmin={isAdmin}
-          currentUserId={me?.id ?? null}
-          isArchived={group.is_archived}
-        />
-      ) : (
-        <p>Create some transactions!</p>
-      )}
-
-      {/* New Transaction Button */}
-      <h2>New transaction</h2>
-       {isArchived ? null : <button onClick={handleCreateTransaction}>Create Transaction</button>}
-
-      {/* Invite Link */}
-      {isAdmin && !isArchived ?  (
-        <button
-          onClick={handleCreateInvite}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-        >
-          Create Invite Link
-        </button>
-      ) : (
-        <p>You must be an admin to send invite to other people</p>
-      )}
-
-      {inviteLink && (
-        <div className="mt-3 p-3 bg-gray-100 rounded">
-          <p className="text-sm">Share this link:</p>
-          <input className="w-full mt-1 p-2 border rounded" value={inviteLink} readOnly />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-5">
+        <div className="border p-10 rounded-4xl bg-blue-100 w-11/12 mx-auto">
+          <h2 className="text-2xl font-semibold mt-1 mb-1 text-center">User Dues</h2>
+          <div className="h-0.5 w-full bg-linear-to-r from-blue-950 to-purple-950 rounded mb-5"></div>
+          {dues !== null ? (
+            <DueList dues={dues} currency={group.base_currency} isAdmin={isAdmin} numberGroupId={numberGroupId} />
+          ) : (
+            <p>Invite your friends!</p>
+          )}
         </div>
-      )}
+
+        {/* Transactions */}
+        <div className="border p-10 rounded-4xl bg-blue-100 w-11/12 mx-auto">
+          <h2 className="text-2xl font-semibold mt-1 mb-1 text-center">Transactions</h2>
+          <div className="h-0.5 w-full bg-linear-to-r from-blue-950 to-purple-950 rounded mb-5"></div>
+          {transactions !== null ? (
+            <TransactionList
+              transactions={transactions}
+              isAdmin={isAdmin}
+              currentUserId={me?.id ?? null}
+              isArchived={group.is_archived}
+            />
+          ) : (
+            <p>Create some transactions!</p>
+          )}
+        </div>
+      </div>
+      <div>
+        <div className="flex">
+          {/* New Transaction Button */}
+          {isArchived ? null : <button className="px-4 py-2 border border-gray-400 rounded-lg cursor-pointer hover:bg-gray-50" onClick={handleCreateTransaction}>Create Transaction</button>}
+
+          <div className="grow" />
+
+          {/* Invite Link */}
+          {isAdmin && !isArchived ? (
+            <button
+              onClick={handleCreateInvite}
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg cursor-pointer"
+            >
+              Create Invite Link
+            </button>
+          ) : (
+            null
+          )}
+        </div>
+
+        {inviteLink && (
+          <div className="mt-3 p-3 bg-gray-100 rounded">
+            <p className="text-sm">Share this link:</p>
+            <input className="w-full mt-1 p-2 border rounded" value={inviteLink} readOnly />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

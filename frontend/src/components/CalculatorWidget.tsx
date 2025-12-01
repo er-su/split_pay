@@ -27,7 +27,7 @@ export default function CalculatorWidget() {
       {/* Pull Button */}
       <button
         onClick={toggle}
-        className={`fixed top-1/2 right-0 -translate-y-1/2 bg-blue-600 text-white px-3 py-2 rounded-l-xl shadow transition-transform duration-1000 transform ${
+        className={`fixed top-1/2 right-0 -translate-y-1/2 bg-blue-600 text-white px-3 py-2 rounded-l-xl shadow transition-transform duration-300 transform ${
           isOpen ? '-translate-x-72' : 'translate-x-0'
         }`}
         style={{ marginRight: isOpen ? '16px' : '0' }}

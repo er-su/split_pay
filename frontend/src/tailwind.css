@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+@theme {
+  --color-muted-foreground: hsl(0 0% 45.1%)
+}

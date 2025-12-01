@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { EditGroupForm } from "../group/EditGroupForm";
+import { EditGroupForm } from "../home/EditGroupForm";
 
 export default function EditGroupPage() {
   const { id } = useParams();
@@ -12,7 +12,6 @@ export default function EditGroupPage() {
       <EditGroupForm
         groupId={Number(id)}
         onUpdated={() => {
-          alert("Group updated!");
           navigate(`/group/${id}`, { state: { refreshGroup: true } });
         }}
       />

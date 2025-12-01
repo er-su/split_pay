@@ -29,7 +29,7 @@ export default function InviteJoinPage() {
           window.location.href = "/api/auth/google/login";
           return;
         }
-        setStatus("Invalid or expired invite link");
+        navigate("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
       }
     };
     joinGroup();

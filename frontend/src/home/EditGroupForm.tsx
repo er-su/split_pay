@@ -58,41 +58,41 @@ export const EditGroupForm: React.FC<Props> = ({ groupId, onUpdated }) => {
     "AUD", "CHF", "CNY", "HKD", "INR",
     "KRW", "SGD", "MXN", "BRL", "ZAR"
   ];
-
+  console.log("In edit form component")
   return (
-    <form onSubmit={submit} style={{ marginBottom: 16 }}>
+    <form onSubmit={submit} className="mb-4 space-y-6 container mx-auto">
       <h2>Edit Group</h2>
 
-      <div>
-        <label>
+      <div className="flex flex-col">
+        <label className="text-gray-700 font-medium mb-1">
           Name
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            style={{ marginLeft: 8 }}
+            className="ml-2 mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 w-full"
           />
         </label>
       </div>
 
-      <div>
-        <label>
+      <div className="flex flex-col">
+        <label className="text-gray-700 font-medium mb-1">
           Description
           <input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            style={{ marginLeft: 8 }}
+            className="ml-2 mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 w-full"
           />
         </label>
       </div>
 
-      <div>
-        <label>
+      <div className="flex flex-col">
+        <label className="text-gray-700 font-medium mb-1">
           Base Currency
           <select
             value={baseCurrency}
             onChange={(e) => setBaseCurrency(e.target.value)}
-            style={{ marginLeft: 8 }}
+            className="ml-2 mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 w-full bg-white"
             required
           >
             {currencies.map((code) => (
@@ -105,12 +105,13 @@ export const EditGroupForm: React.FC<Props> = ({ groupId, onUpdated }) => {
       </div>
 
       <div style={{ marginTop: 8 }}>
-        <button type="submit" disabled={busy}>
+        <button type="submit" disabled={busy}
+          className="w-full bg-blue-950 text-white font-semibold py-2 px-4 rounded-md shadow hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           {busy ? "Saving…" : "Save Changes"}
         </button>
       </div>
 
-      {error && <div style={{ color: "red" }}>{JSON.stringify(error)}</div>}
+      {error && <div className="text-red-600 font-medium">{JSON.stringify(error)}</div>}
     </form>
   );
 };

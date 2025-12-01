@@ -11,14 +11,12 @@ import CreateTransactionPage from "./pages/CreateTransactionPage";
 import EditTransactionPage from "./pages/EditTransactionPage";
 import { CreateGroupPage } from "./pages/CreateGroupPage";
 import EditGroupPage from "./pages/EditGroupPage";
-import "./App.css"
+//import "./App.css"
+import AppLayout from "./components/AppOverlay";
+import ErrorPage from "./pages/ErrorPage";
 export default function App() {
   return (
-    <div>
-      <nav style={{ padding: 12, borderBottom: "1px solid #eee" }}>
-        <Link to="/" className="home-link">Home</Link>
-        <LogoutButton />
-      </nav>
+    <AppLayout>
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -36,9 +34,9 @@ export default function App() {
           />
           <Route path="/groups/new" element={<CreateGroupPage />} />
           <Route path="/group/:id/edit" element={<EditGroupPage />} />
-
+          <Route path="/error" element={<ErrorPage />} />
         </Routes>
       </Suspense>
-    </div>
+    </AppLayout>
   );
 }

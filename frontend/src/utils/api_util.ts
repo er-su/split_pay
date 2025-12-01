@@ -5,7 +5,7 @@ const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000";
 type FetchOptions = RequestInit & { query?: Record<string, string | number | undefined> };
 
 function buildUrl(path: string, query?: Record<string, any>) {
-	// Given an API path along with query parameters, create a query url to perform an API request to
+  // Given an API path along with query parameters, create a query url to perform an API request to
   const base = path.startsWith("http") ? path : `${API_BASE}${path}`;
   if (!query) return base;
   const params = new URLSearchParams();
@@ -38,7 +38,7 @@ async function handle401Redirect() {
 }
 
 export async function apiFetch<T = any>(path: string, opts: FetchOptions = {}): Promise<T> {
-	// Given path and fetch options, perform an API call of a generic response type. Search up what FetchOptions are available
+  // Given path and fetch options, perform an API call of a generic response type. Search up what FetchOptions are available
   const { query, ...rest } = opts;
   const url = buildUrl(path, query);
   const defaultHeaders: Record<string, string> = { "Accept": "application/json" };
@@ -54,7 +54,7 @@ export async function apiFetch<T = any>(path: string, opts: FetchOptions = {}): 
 
   if (res.status === 401) {
     // unauthorized -> redirect to OAuth
-		// may need to update this later for more comprehensive validation
+    // may need to update this later for more comprehensive validation
     await handle401Redirect();
     return Promise.reject(new Error("Unauthorized - redirecting to OAuth"));
   }
@@ -62,14 +62,11 @@ export async function apiFetch<T = any>(path: string, opts: FetchOptions = {}): 
   // handle other fails
   const contentType = res.headers.get("content-type") || "";
   if (!res.ok) {
-    // try to parse body as json, else text
-    if (contentType.includes("application/json")) {
-      const errJson = await res.json();
-      return Promise.reject(errJson);
-    } else {
-      const txt = await res.text();
-      return Promise.reject(new Error(txt || res.statusText));
-    }
+    const contentType = res.headers.get("content-type") || "";
+    const errMessage = contentType.includes("application/json")
+      ? JSON.stringify(await res.json())
+      : await res.text();
+    return Promise.reject(new Error(errMessage || res.statusText));
   }
 
   if (res.status === 204) {
@@ -84,17 +81,22 @@ export async function apiFetch<T = any>(path: string, opts: FetchOptions = {}): 
 }
 
 export const api = {
-	// collection of api endpoint shortcuts, import and use
+  // collection of api endpoint shortcuts, import and use
   // Groups
   getMe: () => apiFetch<User>("/me"),
   listGroups: () => apiFetch<Group[]>("/me/groups"),
   createGroup: (payload: Partial<Group>) => apiFetch<Group>("/groups", { method: "POST", body: JSON.stringify(payload) }),
   getGroup: (id: number) => apiFetch<Group>(`/groups/${id}`),
-  getDues: (groupId:number) => apiFetch<Due[]>(`/groups/${groupId}/dues`),
+  getDues: (groupId: number) => apiFetch<Due[]>(`/groups/${groupId}/dues`),
   fetchGroupMembers: async (groupId: number) => {
     return apiFetch<Member[]>(
       `/groups/${groupId}/members`
     );
+  },
+  fetchAllGroupMembers: async (groupId: number) => {
+    return apiFetch<Member[]>(
+      `/groups/${groupId}/all-members`
+    )
   },
   editGroup: (id: number, payload: Partial<Group>) =>
     apiFetch<Group>(`/groups/${id}`, {
@@ -107,8 +109,8 @@ export const api = {
       method: "DELETE",
     }),
 
-  ArchiveGroup: (groupId:number ) => apiFetch<Group>(`/groups/${groupId}/archive`, { method: "POST" }),
-  UnarchiveGroup: (groupId:number) => apiFetch<Group>(`/groups/${groupId}/unarchive`, { method: "POST" }),
+  ArchiveGroup: (groupId: number) => apiFetch<Group>(`/groups/${groupId}/archive`, { method: "POST" }),
+  UnarchiveGroup: (groupId: number) => apiFetch<Group>(`/groups/${groupId}/unarchive`, { method: "POST" }),
   // Transactions within a group 
   listTransactions: (groupId: number) => apiFetch<Transaction[]>(`/groups/${groupId}/transactions`),
   createTransaction: (groupId: number, payload: Partial<TransactionInput>) =>
@@ -120,20 +122,12 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   deleteTransaction: (txId: number) =>
-  apiFetch<void>(`/transaction/${txId}`, {
-    method: "DELETE",
-  }),
+    apiFetch<void>(`/transaction/${txId}`, {
+      method: "DELETE",
+    }),
 
 
   getTransaction: (txId: number) => apiFetch<Transaction>(`/transactions/${txId}`),
-
-
-
-
-  
-
-
-
   // users / me
   me: () => apiFetch<User>("/me"),
 };

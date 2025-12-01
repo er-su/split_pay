@@ -40,38 +40,42 @@ export const CreateGroupForm: React.FC<Props> = ({ onCreated }) => {
   ];
 
   return (
-    <form onSubmit={submit} style={{ marginBottom: 16 }}>
-      <div>
-        <label>
+    <form onSubmit={submit} className="mb-4 space-y-6 container mx-auto">
+      <div className="flex flex-col">
+        <label className="text-gray-700 font-medium mb-1">
           Name
+          <span className="text-red-500 ml-1">*</span>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            style={{ marginLeft: 8 }}
+            placeholder="(required)"
+            className="mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 w-full"
           />
         </label>
       </div>
 
-      <div>
-        <label>
+      <div className="flex flex-col">
+        <label className="text-gray-700 font-medium mb-1">
           Description
-          <input
+          <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            style={{ marginLeft: 8 }}
+            placeholder="(optional)"
+            className=" mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 w-full"
           />
         </label>
       </div>
 
-      <div>
-        <label>
+      <div className="flex flex-col">
+        <label className="text-gray-700 font-medium mb-1">
           Base Currency
+          <span className="text-red-500 ml-1">*</span>
           <select
             value={baseCurrency}
             onChange={(e) => setBaseCurrency(e.target.value)}
-            style={{ marginLeft: 8 }}
             required
+            className="mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 w-full bg-white"
           >
             {currencies.map((code) => (
               <option key={code} value={code}>
@@ -83,12 +87,16 @@ export const CreateGroupForm: React.FC<Props> = ({ onCreated }) => {
       </div>
 
       <div style={{ marginTop: 8 }}>
-        <button type="submit" disabled={busy}>
+        <button
+          type="submit"
+          disabled={busy} 
+          className="w-full bg-blue-950 text-white font-semibold py-2 px-4 rounded-md shadow hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mx-auto"
+        >
           {busy ? "Creating…" : "Create group"}
         </button>
       </div>
 
-      {error && <div style={{ color: "red" }}>{JSON.stringify(error)}</div>}
+      {error && <div className="text-red-600 font-medium">{JSON.stringify(error)}</div>}
     </form>
   );
 };

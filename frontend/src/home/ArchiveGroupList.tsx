@@ -6,7 +6,7 @@ type Props = { groups: Group[], me: User | null };
 
 export const ArchiveGroupList: React.FC<Props> = ({ groups, me }) => {
   if (!groups?.length) {
-    return <div>No groups yet... create one!</div>;
+    return <div className="text-center text-red-800">No Archived Groups!</div>;
   }
   return (
     <div>
