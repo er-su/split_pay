@@ -68,13 +68,13 @@ export default function HomePage() {
       <Link
         to="/groups/new"
         className="
-          absolute bottom-20 left-6 
+          fixed bottom-10 right-10
           bg-blue-600 text-white 
           px-5 py-3 rounded-xl shadow-lg 
           hover:bg-blue-700 transition
         "     
       >
-        Create a group
+        Create a Group + 
       </Link>
     </div>
   );

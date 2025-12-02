@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import List, Optional
 from pydantic import EmailStr
 from sqlalchemy import (
-    Integer, String, Boolean, DateTime, ForeignKey, Text, func, Index, event, Numeric
+    JSON, Integer, String, Boolean, DateTime, ForeignKey, Text, func, Index, event, Numeric
 )
 from sqlalchemy.orm import (
     DeclarativeBase, Mapped, mapped_column, relationship
@@ -184,3 +184,12 @@ class Split(Base):
     __table_args__ = (
         Index("ux_transaction_user", "transaction_id", "user_id", unique=True),
     )
+
+class PlacesCache(Base):
+    __tablename__ = "places_cache"
+
+    city: Mapped[str] = mapped_column(String, primary_key=True)
+    response: Mapped[dict] = mapped_column(JSON)
+    lon: Mapped[str] = mapped_column(String)
+    lat: Mapped[str] = mapped_column(String)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

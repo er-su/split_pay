@@ -11,7 +11,7 @@ export interface Group {
   base_currency: string;
   created_by: number;
   creator_display_name?: string;
-  location_name?: number;
+  location_name?: string;
   is_archived: boolean;
 }
 

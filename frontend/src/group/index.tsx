@@ -8,6 +8,7 @@ import { TransactionList } from "./TransactionList";
 import { DueList } from "./DueList";
 import { MemberList } from "./MemberList";
 import { User as IconUser, DollarSign } from "lucide-react";
+import { LocationList } from "./LocationList";
 
 export default function GroupPage() {
   const groupId = useParams().id;
@@ -175,6 +176,7 @@ export default function GroupPage() {
           </div>
         )}
       </div>
+      {group.location_name && <LocationList location_name={group.location_name}/>}
     </div>
   );
 }

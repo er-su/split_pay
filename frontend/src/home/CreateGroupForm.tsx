@@ -6,6 +6,27 @@ import type { Group } from "../utils/types";
 type Props = { onCreated?: (g: Group) => void };
 
 export const CreateGroupForm: React.FC<Props> = ({ onCreated }) => {
+  const [destinationQuery, setDestinationQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Example static city list (replace with API later)
+  const cities = [
+    "Tokyo",
+    "New York",
+    "San Francisco",
+    "Los Angeles",
+    "London",
+    "Paris",
+    "Seoul",
+    "Singapore",
+    "Toronto",
+    "Sydney",
+  ];
+
+  // Filter dynamically
+  const filteredCities = cities.filter((c) =>
+    c.toLowerCase().includes(destinationQuery.toLowerCase())
+  );
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [baseCurrency, setBaseCurrency] = useState("USD");
@@ -21,10 +42,12 @@ export const CreateGroupForm: React.FC<Props> = ({ onCreated }) => {
         name,
         description,
         base_currency: baseCurrency,
+        location_name: destinationQuery,
       });
       setName("");
       setDescription("");
       setBaseCurrency("USD");
+      setDestinationQuery("")
       onCreated?.(created);
     } catch (err) {
       setError(err);
@@ -65,6 +88,43 @@ export const CreateGroupForm: React.FC<Props> = ({ onCreated }) => {
             className=" mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 w-full"
           />
         </label>
+      </div>
+
+      {/* Destination Field */}
+      <div className="flex flex-col relative">
+        <label className="text-gray-700 font-medium mb-1">
+          Destination
+          <input
+            type="text"
+            value={destinationQuery}
+            onChange={(e) => {
+              setDestinationQuery(e.target.value);
+              setShowSuggestions(true);
+            }}
+            placeholder="Search for a city..."
+            className="mt-1 px-3 py-2 border border-gray-300 rounded-md 
+                       focus:outline-none focus:ring-2 focus:ring-blue-600 
+                       focus:border-blue-600 w-full"
+          />
+        </label>
+          
+        {/* Suggestion Dropdown */}
+        {showSuggestions && filteredCities.length > 0 && (
+          <ul className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-20 max-h-48 overflow-y-auto">
+            {filteredCities.map((city) => (
+              <li
+                key={city}
+                className="px-3 py-2 hover:bg-blue-50 cursor-pointer"
+                onClick={() => {
+                  setDestinationQuery(city);
+                  setShowSuggestions(false);
+                }}
+              >
+                {city}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="flex flex-col">

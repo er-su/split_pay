@@ -1,6 +1,7 @@
 from fastapi import Depends, FastAPI
 
-from .routers import groups, transactions, auth, users, invites
+
+from .routers import groups, transactions, auth, users, invites, location
 from .db import engine #, SessionLocal, connection
 from backend.schema import Base
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +14,7 @@ app.include_router(groups.router)
 app.include_router(transactions.router)
 app.include_router(users.router)
 app.include_router(invites.router)
+app.include_router((location.router))
 
 app.add_middleware(
     CORSMiddleware,

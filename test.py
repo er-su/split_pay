@@ -1,13 +1,44 @@
 import json
 import requests
 from datetime import datetime, timezone
+import os
+import dotenv
 
-""" resp = requests.get("https://open.er-api.com/v6/latest/USD")
-now = datetime.now(timezone.utc).timestamp()
-print(resp.json())
-print(type(resp.json())) """
+dotenv.load_dotenv(dotenv.find_dotenv())
 
-with open("path.json", "r") as f:
-    data = json.load(f)
+GEOAPIFY_KEY = os.getenv("GEOAPIFY_KEY")
+GEOAPIFY_URL = "https://api.geoapify.com/v2/places"
+GEOCODE_URL = "https://api.geoapify.com/v1/geocode/search"
 
-print((1.0 / float(data["rates"]["EUR"])))
+city = "Tokyo"
+
+geocode_params = {
+    "text": city,
+    "type": "city",
+    "limit": 1,
+    "apiKey": GEOAPIFY_KEY,
+}
+geocode_resp = requests.get(GEOCODE_URL, params=geocode_params)
+geocode_resp.raise_for_status()
+geo_data = geocode_resp.json()
+
+print(geo_data)
+
+feature = geo_data["features"][0]
+lon = feature["properties"]["lon"]
+lat = feature["properties"]["lat"]
+place_id = feature["properties"].get("place_id")
+
+print(place_id)
+
+params = {
+    "filter": f"circle:{lon},{lat},5000",
+    "apiKey": GEOAPIFY_KEY,
+    "limit": 20,
+    "categories" : "commercial,natural,entertainment,leisure"
+}
+resp = requests.get(GEOAPIFY_URL, params=params)
+resp.raise_for_status()
+data = resp.json()
+
+print(data)
