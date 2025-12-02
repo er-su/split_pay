@@ -2,25 +2,66 @@
 import React, { useState } from "react";
 import { api } from "../utils/api_util";
 import type { Group } from "../utils/types";
+import { useNavigate } from "react-router-dom";
 
 type Props = { onCreated?: (g: Group) => void };
 
 export const CreateGroupForm: React.FC<Props> = ({ onCreated }) => {
+  const nav = useNavigate()
   const [destinationQuery, setDestinationQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Example static city list (replace with API later)
-  const cities = [
-    "Tokyo",
-    "New York",
-    "San Francisco",
-    "Los Angeles",
-    "London",
+  const cities: string[] = [
+    "Bangkok",
     "Paris",
-    "Seoul",
+    "London",
+    "Dubai",
     "Singapore",
-    "Toronto",
+    "New York City",
+    "Tokyo",
+    "Istanbul",
+    "Kuala Lumpur",
+    "Seoul",
+    "Hong Kong",
+    "Barcelona",
+    "Amsterdam",
+    "Rome",
+    "Macau",
+    "Las Vegas",
+    "Los Angeles",
+    "Shanghai",
     "Sydney",
+    "Madrid",
+    "Vienna",
+    "Prague",
+    "Miami",
+    "Taipei",
+    "Chiang Mai",
+    "Kyoto",
+    "Osaka",
+    "Berlin",
+    "Munich",
+    "Budapest",
+    "Lisbon",
+    "Toronto",
+    "San Francisco",
+    "Milan",
+    "Venice",
+    "Athens",
+    "Cancún",
+    "Dublin",
+    "Marrakesh",
+    "Doha",
+    "Cairo",
+    "Buenos Aires",
+    "Johannesburg",
+    "Cape Town",
+    "Rio de Janeiro",
+    "Mexico City",
+    "Delhi",
+    "Mumbai",
+    "Ho Chi Minh City",
+    "Hanoi"
   ];
 
   // Filter dynamically
@@ -50,18 +91,45 @@ export const CreateGroupForm: React.FC<Props> = ({ onCreated }) => {
       setDestinationQuery("")
       onCreated?.(created);
     } catch (err) {
-      setError(err);
+      nav("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
     } finally {
       setBusy(false);
     }
   };
-
-  const currencies = [
-    "USD", "EUR", "GBP", "JPY", "CAD",
-    "AUD", "CHF", "CNY", "HKD", "INR",
-    "KRW", "SGD", "MXN", "BRL", "ZAR"
+  
+  const currencies: string[] = [
+    "USD", // US Dollar
+    "EUR", // Euro
+    "JPY", // Japanese Yen
+    "GBP", // British Pound
+    "AUD", // Australian Dollar
+    "CAD", // Canadian Dollar
+    "CHF", // Swiss Franc
+    "CNY", // Chinese Yuan
+    "HKD", // Hong Kong Dollar
+    "NZD", // New Zealand Dollar
+    "SEK", // Swedish Krona
+    "KRW", // South Korean Won
+    "SGD", // Singapore Dollar
+    "NOK", // Norwegian Krone
+    "MXN", // Mexican Peso
+    "INR", // Indian Rupee
+    "RUB", // Russian Ruble
+    "ZAR", // South African Rand
+    "TRY", // Turkish Lira
+    "BRL", // Brazilian Real
+    "TWD", // New Taiwan Dollar
+    "DKK", // Danish Krone
+    "PLN", // Polish Zloty
+    "THB", // Thai Baht
+    "IDR", // Indonesian Rupiah
+    "HUF", // Hungarian Forint
+    "CZK", // Czech Koruna
+    "ILS", // Israeli New Shekel
+    "AED", // UAE Dirham
+    "SAR"  // Saudi Riyal
   ];
-
+  
   return (
     <form onSubmit={submit} className="mb-4 space-y-6 container mx-auto">
       <div className="flex flex-col">

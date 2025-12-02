@@ -57,7 +57,7 @@ const EditTransactionPage: React.FC = () => {
         const groupMembers = await api.fetchGroupMembers(tx.group_id);
         setMembers(groupMembers || []);
       } catch (err) {
-        setError(err);
+        navigate("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
       } finally {
         setLoading(false);
       }

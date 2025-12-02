@@ -33,8 +33,6 @@ export const GroupCard: React.FC<GroupInfo> = ({ group, me }) => {
         if (!cancelled) {
           setIsArchived(group.is_archived);
           const [meRes, membersRes] = await Promise.all([
-
-
             api.getMe(),
             api.fetchGroupMembers(group.id),
           ]);
@@ -44,7 +42,7 @@ export const GroupCard: React.FC<GroupInfo> = ({ group, me }) => {
 
         }
       } catch (err) {
-        console.error("Failed to fetch archive status", err);
+        nav("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
       }
     }
 
@@ -59,31 +57,6 @@ export const GroupCard: React.FC<GroupInfo> = ({ group, me }) => {
     return null;
   }
 
-  const startConfirmArchive = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    setConfirming(true);
-  };
-
-  const cancelArchive = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    setConfirming(false);
-  };
-
-  const confirmArchive = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    try {
-      setBusy(true);
-      await api.ArchiveGroup(group.id);
-      // onDeleted?.(tx.id); // parent removes it from the list
-
-    } catch (err) {
-      console.error("Failed to delete transaction", err);
-    } finally {
-      setBusy(false);
-      setConfirming(false);
-      window.location.reload();
-    }
-  };
 
   const handleArchiveGroup = async () => {
     try {
@@ -92,7 +65,7 @@ export const GroupCard: React.FC<GroupInfo> = ({ group, me }) => {
       // onDeleted?.(tx.id); // parent removes it from the list
 
     } catch (err) {
-      console.error("Failed to delete transaction", err);
+      nav("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
     } finally {
       setBusy(false);
       setConfirming(false);
@@ -108,8 +81,7 @@ export const GroupCard: React.FC<GroupInfo> = ({ group, me }) => {
       await apiFetch(`/groups/${group.id}`, { method: "DELETE" });
 
     } catch (err) {
-      console.error("Failed to delete group:", err);
-      alert("Could not delete group.");
+      nav("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
     }
     finally {
       window.location.reload();
@@ -138,6 +110,9 @@ export const GroupCard: React.FC<GroupInfo> = ({ group, me }) => {
         <div className="flex items-center">
           Currency: {group.base_currency}
         </div>
+        {group.location_name && <div className="flex items-center">
+          Destination: {group.location_name}
+        </div>}
       </div>
       <div className="text-md text-black border-t border-gray-200 pt-3 mt-2">Description: {group.description ? group.description : "No description"}</div>
       {/* <button onClick={goToEdit}>Edit</button> */}

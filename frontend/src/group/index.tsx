@@ -6,7 +6,6 @@ import type { Transaction, Group, User, Due, Member } from "../utils/types";
 import { Loading } from "../components/Loading";
 import { TransactionList } from "./TransactionList";
 import { DueList } from "./DueList";
-import { MemberList } from "./MemberList";
 import { User as IconUser, DollarSign } from "lucide-react";
 import { LocationList } from "./LocationList";
 
@@ -49,7 +48,7 @@ export default function GroupPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error("Failed to copy: ", err);
+      navigate("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
     }
   };
 
@@ -59,8 +58,7 @@ export default function GroupPage() {
       setInviteLink(res.invite_link);
       handleCopy(res.invite_link);
     } catch (err) {
-      console.error("Failed to create invite:", err);
-      alert("Could not create invite link.");
+      navigate("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
     }
   };
 
@@ -128,7 +126,7 @@ export default function GroupPage() {
           <h2 className="text-2xl font-semibold mt-1 mb-1 text-center">User Dues</h2>
           <div className="h-0.5 w-full bg-linear-to-r from-blue-950 to-purple-950 rounded mb-5"></div>
           {dues !== null ? (
-            <DueList dues={dues} currency={group.base_currency} isAdmin={isAdmin} numberGroupId={numberGroupId} />
+            <DueList dues={dues} currency={group.base_currency} isAdmin={isAdmin} numberGroupId={numberGroupId} isArchived={group.is_archived} />
           ) : (
             <p>Invite your friends!</p>
           )}
@@ -177,7 +175,9 @@ export default function GroupPage() {
           </div>
         )}
       </div>
-      {group.location_name && <LocationList location_name={group.location_name}/>}
+      <div className="mt-4">
+        {group.location_name ? <LocationList location_name={group.location_name}/> : <p className="text-center text-gray-500 text-sm mt-6 italic">Add a location to this group to see nearby attractions ✨</p>}
+      </div>
     </div>
   );
 }

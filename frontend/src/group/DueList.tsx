@@ -4,7 +4,7 @@ import { DueCard } from "./DueCard";
 import { api, apiFetch } from "../utils/api_util";
 import { useNavigate } from "react-router-dom";
 
-export const DueList: React.FC<{ dues: Due[], currency: string;  isAdmin: boolean; numberGroupId:number}> = ({ dues, currency,isAdmin, numberGroupId}) => {
+export const DueList: React.FC<{ dues: Due[], currency: string;  isAdmin: boolean; numberGroupId:number, isArchived: boolean}> = ({ dues, currency,isAdmin, numberGroupId, isArchived}) => {
   const navigate = useNavigate()
   const [allGroupMemberInfo, setAllGroupMemberInfo] = useState<Member[]>([])
   
@@ -23,7 +23,7 @@ export const DueList: React.FC<{ dues: Due[], currency: string;  isAdmin: boolea
   if (!dues?.length) return <div>No other members yet.</div>;
   return (
     <div>
-      {dues.map((due) => <DueCard key={due.other_user_id} due={due} currency={currency} isAdmin={isAdmin} numberGroupId={numberGroupId} otherUserId={due.other_user_id} allUserList={allGroupMemberInfo}/>)}
+      {dues.map((due) => <DueCard key={due.other_user_id} due={due} currency={currency} isAdmin={isAdmin} numberGroupId={numberGroupId} otherUserId={due.other_user_id} allUserList={allGroupMemberInfo} isArchived={isArchived}/>)}
     </div>
   );
 };

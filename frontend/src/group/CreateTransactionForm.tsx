@@ -17,6 +17,7 @@ type Props = {
 };
 
 export const CreateTransactionForm: React.FC<Props> = ({ groupId, onCreated }) => {
+  const nav = useNavigate()
   const [title, setTitle] = useState("");
   const [memo, setMemo] = useState("");
   const [payerId, setPayerId] = useState<number | "">("");
@@ -38,7 +39,7 @@ export const CreateTransactionForm: React.FC<Props> = ({ groupId, onCreated }) =
         setMembers(res || []);
         console.log(members)
       } catch (err) {
-        console.error("Failed to fetch group members:", err);
+        nav("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
       }
     })();
   }, [groupId]);

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import ConfirmButton from "../components/ConfirmDialogueButton";
 
 
-export const DueCard: React.FC<{ due: Due, currency: string; isAdmin: boolean; numberGroupId: number, otherUserId: number, allUserList: Member[] }> = ({ due, currency, isAdmin, numberGroupId, otherUserId, allUserList }) => {
+export const DueCard: React.FC<{ due: Due, currency: string; isAdmin: boolean; numberGroupId: number, otherUserId: number, allUserList: Member[], isArchived: boolean }> = ({ due, currency, isAdmin, numberGroupId, otherUserId, allUserList, isArchived }) => {
   function truncateToTwoDecimals(amount: string): string {
     const [intPart, decPart] = amount.split(".");
     return decPart ? `${intPart}.${decPart.slice(0, 2)}` : amount;
@@ -39,7 +39,7 @@ export const DueCard: React.FC<{ due: Due, currency: string; isAdmin: boolean; n
       <div className={usernameClasses}>{due.other_user_display_name}</div>
       {(userMember?.left_at !== null) && <div className="text-gray-500 mb-2">User has left the group</div>}
       <div className="text-gray-500 mb-2">{truncateToTwoDecimals(due.amount_owed)} {currency}</div>
-      {isAdmin && (userMember?.left_at === null) && <ConfirmButton buttonText="Kick User" confirmText="Are you sure you wish to remove this user?" onConfirm={kickUser} buttonClassName="bg-red-700 text-white hover:bg-red-800" />}
+      {isAdmin && (userMember?.left_at === null) && (!isArchived) && <ConfirmButton buttonText="Kick User" confirmText="Are you sure you wish to remove this user?" onConfirm={kickUser} buttonClassName="bg-red-700 text-white hover:bg-red-800" />}
     </div>
   );
 };

@@ -4,7 +4,6 @@ import { api } from "../utils/api_util";
 import type { Transaction, User } from "../utils/types";
 import { Loading } from "../components/Loading";
 import { SplitList } from "./SplitList";
-import { ErrorMessage } from "../components/ErrorMessage";
 import { useNavigate } from "react-router-dom";
 export default function TransactionPage() {
   const navigate = useNavigate();
@@ -12,7 +11,6 @@ export default function TransactionPage() {
   const txId = Number(id);
   const [tx, setTx] = useState<Transaction | null>(null);
   const [me, setMe] = useState<User | null>(null);
-  const [error, setError] = useState<any>(null);
 
   function truncateToTwoDecimals(amount: string): string {
     const [intPart, decPart] = amount.split(".");
@@ -27,7 +25,7 @@ export default function TransactionPage() {
         const data = await api.getTransaction(txId);
         setTx(data);
         if (me === null) {
-          return (<ErrorMessage error={"Unable to get user. Fatal error"}/>)
+          navigate("/error", { state: { message: "Unable to fetch self" } });
         }
         setMe(me)
       } catch (err) {
@@ -85,8 +83,6 @@ export default function TransactionPage() {
             payer_display_name={payer_display_name}
           />
         </div>
-      
-        <ErrorMessage error={error} />
       </div>
     </div>
   );

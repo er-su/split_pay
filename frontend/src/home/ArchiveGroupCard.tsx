@@ -44,7 +44,7 @@ export const ArchiveGroupCard: React.FC<GroupInfo> = ({ group, me }) => {
 
         }
       } catch (err) {
-        console.error("Failed to fetch archive status", err);
+        nav("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
       }
     }
 
@@ -78,7 +78,7 @@ export const ArchiveGroupCard: React.FC<GroupInfo> = ({ group, me }) => {
       // onDeleted?.(tx.id); // parent removes it from the list
 
     } catch (err) {
-      console.error("Failed to delete transaction", err);
+      nav("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
     } finally {
       setBusy(false);
       setConfirming(false);
@@ -93,7 +93,7 @@ export const ArchiveGroupCard: React.FC<GroupInfo> = ({ group, me }) => {
       // onDeleted?.(tx.id); // parent removes it from the list
 
     } catch (err) {
-      console.error("Failed to delete transaction", err);
+      nav("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
     } finally {
       setBusy(false);
       setConfirming(false);

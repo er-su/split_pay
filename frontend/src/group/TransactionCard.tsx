@@ -47,7 +47,7 @@ export const TransactionCard: React.FC<Props> = ({ tx, isAdmin, currentUserId, i
       // onDeleted?.(tx.id); // parent removes it from the list
 
     } catch (err) {
-      console.error("Failed to delete transaction", err);
+      nav("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
     } finally {
       setBusy(false);
       setConfirming(false);
