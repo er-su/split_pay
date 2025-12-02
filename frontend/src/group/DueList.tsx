@@ -20,7 +20,7 @@ export const DueList: React.FC<{ dues: Due[], currency: string;  isAdmin: boolea
     } 
 
   }, [numberGroupId]);
-  if (!dues?.length) return <div>No other members yet.</div>;
+  if (!dues?.length) return <div className="text-center text-gray-500">No other members yet...</div>;
   return (
     <div>
       {dues.map((due) => <DueCard key={due.other_user_id} due={due} currency={currency} isAdmin={isAdmin} numberGroupId={numberGroupId} otherUserId={due.other_user_id} allUserList={allGroupMemberInfo} isArchived={isArchived}/>)}

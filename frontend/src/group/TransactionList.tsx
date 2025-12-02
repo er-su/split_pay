@@ -11,7 +11,7 @@ type Props = {
 };
 
 export const TransactionList: React.FC<Props> = ({ transactions, isAdmin,currentUserId,isArchived }) => {
-  if (!transactions?.length) return <div>No transactions yet.</div>;
+  if (!transactions?.length) return <div className="text-center text-gray-500">No transactions yet...</div>;
   return (
     <div>
       {transactions.map((t) => (

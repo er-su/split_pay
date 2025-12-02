@@ -80,6 +80,7 @@ export default function TransactionPage() {
           <SplitList
             splits={tx.splits}
             me={me}
+            currency={tx.currency}
             payer_display_name={payer_display_name}
           />
         </div>

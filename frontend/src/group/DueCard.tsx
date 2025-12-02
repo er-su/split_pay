@@ -35,7 +35,7 @@ export const DueCard: React.FC<{ due: Due, currency: string; isAdmin: boolean; n
   //console.log("userMember", userMember)
   const usernameClasses = (userMember?.left_at === null) ? ("text-3xl m-1") : ("text-3xl m-1 text-red-600")
   return (
-    <div className="border-black border bg-white hover:drop-shadow-md hover:bg-gray-50 hover:scale-105 rounded-2xl p-3 text-center transition max-w-3/4 mx-auto">
+    <div className="border-black border bg-white hover:drop-shadow-md hover:bg-gray-50 hover:scale-105 rounded-2xl p-3 text-center transition max-w-3/4 mx-auto m-3">
       <div className={usernameClasses}>{due.other_user_display_name}</div>
       {(userMember?.left_at !== null) && <div className="text-gray-500 mb-2">User has left the group</div>}
       <div className="text-gray-500 mb-2">{truncateToTwoDecimals(due.amount_owed)} {currency}</div>

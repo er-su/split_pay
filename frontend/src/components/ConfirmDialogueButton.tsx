@@ -8,13 +8,6 @@ interface ConfirmButtonProps {
   buttonClassName?: string;
 }
 
-/**
- * ConfirmButton
- * - Renders the trigger inline (stops propagation)
- * - Renders modal as a portal to document.body (avoids stacking/hover issues)
- * - Overlay catches clicks to close, inner dialog stops propagation
- * - Disables body scroll while open, supports Escape to close
- */
 export default function ConfirmButton({
   buttonText,
   confirmText,

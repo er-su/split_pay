@@ -1,7 +1,7 @@
 // src/pages/transaction/SplitList.tsx
 import React from "react";
 import type { Split, User } from "../utils/types";
-export const SplitList: React.FC<{ splits?: Split[], me: User, payer_display_name: string }> = ({ splits, me, payer_display_name }) => {
+export const SplitList: React.FC<{ splits?: Split[], me: User, currency:string, payer_display_name: string }> = ({ splits, me, currency, payer_display_name }) => {
   if (!splits || !splits.length) return <div>No splits. An error has occured</div>;
 
   function truncateToTwoDecimals(amount: string): string {
@@ -30,7 +30,7 @@ export const SplitList: React.FC<{ splits?: Split[], me: User, payer_display_nam
 
             {/* Amount */}
             <span className={`font-semibold ${money_color}`}>
-              ${truncateToTwoDecimals(s.amount_cents)}
+              {truncateToTwoDecimals(s.amount_cents)} {currency} 
             </span>
           </div>
         ))}
