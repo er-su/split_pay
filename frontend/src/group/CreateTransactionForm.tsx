@@ -4,7 +4,7 @@ import { api } from "../utils/api_util";
 import { type Member, type Transaction, type User } from "../utils/types";
 import { MultiSelect } from "@/components/MultiSelect";
 import CalculatorWidget from "@/components/CalculatorWidget";
-
+import { useNavigate } from "react-router-dom";
 type SplitInput = {
   user_id: number;
   amount_cents: string; // local numeric representation
@@ -29,7 +29,7 @@ export const CreateTransactionForm: React.FC<Props> = ({ groupId, onCreated }) =
   ]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<any>(null);
-
+  const navigate = useNavigate();
   // --- Fetch group members ---
   useEffect(() => {
     (async () => {
@@ -124,8 +124,9 @@ export const CreateTransactionForm: React.FC<Props> = ({ groupId, onCreated }) =
       setTotalAmt("");
       setSplits([{ user_id: -1, amount_cents: "", note: "" }]);
       setSelectedUsers([])
-    } catch (err) {
+    } catch (err: any) {
       setError(err);
+      navigate("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
     } finally {
       setBusy(false);
     }

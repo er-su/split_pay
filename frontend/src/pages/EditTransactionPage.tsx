@@ -122,7 +122,7 @@ const EditTransactionPage: React.FC = () => {
       // after saving, go back to the transaction page
       navigate(`/transaction/${updated.id}`);
     } catch (err) {
-      setError(err);
+      navigate("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
     } finally {
       setBusy(false);
     }
