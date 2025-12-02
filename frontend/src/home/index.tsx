@@ -24,6 +24,7 @@ export default function HomePage() {
       setGroups(data);
       setMe(me);
     } catch (err) {
+      
       navigate("/error", { state: { message: err instanceof Error ? err.message : String(err) } });
     }
   };
